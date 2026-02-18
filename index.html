@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROJECT OPENING — AI-Powered Event Curation Platform</title>
+<meta name="description" content="We curate global event trends and deliver tailored packages for Korean event agencies.">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --cream: #F5F2EB;
+  --black: #1A1A1A;
+  --gray: #666;
+  --light-gray: #999;
+  --accent: #D865C8;
+  --accent-hover: #C04AB3;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Archivo', -apple-system, system-ui, sans-serif;
+  background: var(--cream);
+  color: var(--black);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Header */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--cream);
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #E0DDD5;
+}
+
+.logo {
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+}
+
+.menu-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+/* Hero */
+.hero {
+  padding: 80px 40px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.hero-title {
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -2px;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+}
+
+.hero-image {
+  width: 100%;
+  height: clamp(300px, 50vw, 500px);
+  border-radius: 32px;
+  overflow: hidden;
+  margin-bottom: 40px;
+  background: linear-gradient(135deg, #8B4367 0%, #A65B7A 100%);
+}
+
+.cta-btn {
+  display: inline-block;
+  background: var(--accent);
+  color: white;
+  padding: 18px 48px;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.cta-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+/* Features */
+.features {
+  padding: 80px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-title {
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 300;
+  line-height: 1.2;
+  margin-bottom: 60px;
+  letter-spacing: -1px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px;
+}
+
+.feature-card {
+  background: white;
+  border-radius: 24px;
+  overflow: hidden;
+  transition: transform 0.3s;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+}
+
+.feature-image {
+  width: 100%;
+  height: 320px;
+  background: linear-gradient(135deg, #E8B4D9 0%, #F5D5E8 100%);
+  border-radius: 24px;
+}
+
+.feature-content {
+  padding: 28px 24px;
+}
+
+.feature-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--black);
+  margin-bottom: 8px;
+}
+
+.feature-desc {
+  font-size: 15px;
+  color: var(--gray);
+  line-height: 1.6;
+}
+
+/* About */
+.about {
+  padding: 80px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.about-image {
+  width: 100%;
+  height: 500px;
+  border-radius: 32px;
+  background: linear-gradient(135deg, #F9C74F 0%, #F3B941 100%);
+}
+
+.about-content {
+  max-width: 500px;
+}
+
+.about-label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--black);
+}
+
+.about-title {
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 300;
+  line-height: 1.2;
+  margin-bottom: 24px;
+  letter-spacing: -1px;
+}
+
+.about-btn {
+  margin-top: 32px;
+}
+
+/* Beta Signup */
+.beta {
+  padding: 80px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.beta-form {
+  max-width: 480px;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--black);
+}
+
+.form-input {
+  width: 100%;
+  padding: 16px 20px;
+  border: 1px solid #D0CCC4;
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: 'Archivo', sans-serif;
+  background: white;
+  transition: border-color 0.3s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.submit-btn {
+  width: 100%;
+  margin-top: 32px;
+}
+
+.message {
+  margin-top: 20px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.message.success {
+  background: #E8F5E9;
+  color: #2E7D32;
+  border: 1px solid #A5D6A7;
+}
+
+.message.error {
+  background: #FFEBEE;
+  color: #C62828;
+  border: 1px solid #EF9A9A;
+}
+
+.beta-content {
+  max-width: 500px;
+}
+
+.beta-subtitle {
+  font-size: 16px;
+  color: var(--gray);
+  margin-bottom: 20px;
+}
+
+.beta-title {
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 300;
+  line-height: 1.2;
+  margin-bottom: 24px;
+  letter-spacing: -1px;
+}
+
+/* Footer */
+.footer {
+  padding: 80px 40px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: var(--black);
+  color: white;
+  border-radius: 32px 32px 0 0;
+}
+
+.footer-title {
+  font-size: clamp(48px, 8vw, 120px);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -2px;
+  margin-bottom: 40px;
+  text-transform: uppercase;
+}
+
+.footer-info {
+  max-width: 400px;
+  font-size: 16px;
+  line-height: 1.8;
+  color: #CCC;
+}
+
+.footer-info a {
+  color: white;
+  text-decoration: none;
+  border-bottom: 1px solid #666;
+  transition: border-color 0.3s;
+}
+
+.footer-info a:hover {
+  border-color: white;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 16px 24px;
+  }
+  
+  .hero {
+    padding: 60px 24px 40px;
+  }
+  
+  .features {
+    padding: 60px 24px;
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .about {
+    grid-template-columns: 1fr;
+    padding: 60px 24px;
+    gap: 40px;
+  }
+  
+  .beta {
+    grid-template-columns: 1fr;
+    padding: 60px 24px;
+    gap: 40px;
+  }
+  
+  .footer {
+    padding: 60px 24px 32px;
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">PROJECT OPENING</div>
+  <button class="menu-btn">≡</button>
+</header>
+
+<section class="hero">
+  <h1 class="hero-title">Curate Events<br>with Global Trends</h1>
+  <div class="hero-image"></div>
+  <button class="cta-btn" onclick="document.getElementById('beta').scrollIntoView({behavior:'smooth'})">
+    Join Beta Program
+  </button>
+</section>
+
+<section class="features">
+  <h2 class="section-title">A curation platform<br>for every event need</h2>
+  
+  <div class="features-grid">
+    
+    <div class="feature-card">
+      <div class="feature-image" style="background: linear-gradient(135deg, #FFB4A2 0%, #FFCDB8 100%);"></div>
+      <div class="feature-content">
+        <div class="feature-label">Global Trends</div>
+        <div class="feature-desc">
+          Real-time curation from BizBash, SXSW, and Cannes Lions. We track what's working in US and European events.
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-image" style="background: linear-gradient(135deg, #B4869F 0%, #C89FB5 100%);"></div>
+      <div class="feature-content">
+        <div class="feature-label">AI-Powered Packages</div>
+        <div class="feature-desc">
+          Three tailored packages — basic, differentiated, impact — delivered in 3 days instead of 2 weeks.
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-image" style="background: linear-gradient(135deg, #F9C74F 0%, #F8D56B 100%);"></div>
+      <div class="feature-content">
+        <div class="feature-label">Beta Launch</div>
+        <div class="feature-desc">
+          Starting March 2026 with 10 Korean event agencies. Shape the future of event planning.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="about">
+  <div class="about-image"></div>
+  <div class="about-content">
+    <div class="about-label">About us</div>
+    <h2 class="about-title">
+      We curate global event trends and deliver tailored packages for Korean agencies.
+    </h2>
+    <p style="color: var(--gray); line-height: 1.8; margin-bottom: 16px;">
+      From trending swag to experiential decor, we make every event stand out with AI-powered curation from the world's leading event platforms.
+    </p>
+    <button class="cta-btn about-btn" onclick="document.getElementById('beta').scrollIntoView({behavior:'smooth'})">
+      Join Beta Waitlist
+    </button>
+  </div>
+</section>
+
+<section class="beta" id="beta">
+  <div class="beta-content">
+    <div class="beta-subtitle">Join the beta program</div>
+    <h2 class="beta-title">
+      Get early access and exclusive beta pricing.
+    </h2>
+  </div>
+  
+  <form class="beta-form" id="betaForm">
+    <div class="form-group">
+      <label class="form-label" for="emailInput">Email address</label>
+      <input 
+        type="email" 
+        class="form-input" 
+        id="emailInput"
+        placeholder="your@email.com"
+        required
+      >
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label" for="companyInput">Company / Agency</label>
+      <input 
+        type="text" 
+        class="form-input" 
+        id="companyInput"
+        placeholder="Your company name (optional)"
+      >
+    </div>
+    
+    <button type="submit" class="cta-btn submit-btn" id="submitBtn">
+      Submit
+    </button>
+    
+    <div id="message" class="message" style="display:none;"></div>
+  </form>
+</section>
+
+<footer class="footer">
+  <div class="footer-title">PROJECT<br>OPENING</div>
+  <div class="footer-info">
+    <p style="margin-bottom: 12px;">AI-Powered Event Curation Platform</p>
+    <p>
+      For inquiries: <a href="mailto:team@projectopening.com">team@projectopening.com</a>
+    </p>
+    <p style="margin-top: 32px; font-size: 14px; color: #666;">
+      © 2026 PROJECT OPENING. All rights reserved.
+    </p>
+  </div>
+</footer>
+
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ⚠️ IMPORTANT: Replace these with your actual Supabase credentials
+const SUPABASE_URL = 'https://uduqkekvtfcckjmhnfm.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_agzcYDk0yPUayHgtogoALw_jBYzpIwf';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+document.getElementById('betaForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const submitBtn = document.getElementById('submitBtn');
+  const message = document.getElementById('message');
+  const email = document.getElementById('emailInput').value.trim();
+  const company = document.getElementById('companyInput').value.trim();
+  
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting...';
+  message.style.display = 'none';
+  
+  try {
+    const { data, error } = await supabase
+      .from('beta_signups')
+      .insert([
+        { 
+          email: email,
+          company: company || null
+        }
+      ]);
+    
+    if (error) throw error;
+    
+    message.className = 'message success';
+    message.textContent = '✓ You\'re on the list! We\'ll reach out soon.';
+    message.style.display = 'block';
+    
+    document.getElementById('emailInput').value = '';
+    document.getElementById('companyInput').value = '';
+    
+  } catch (error) {
+    message.className = 'message error';
+    if (error.code === '23505') {
+      message.textContent = '✗ This email is already registered.';
+    } else {
+      message.textContent = '✗ Something went wrong. Please try again.';
+    }
+    message.style.display = 'block';
+    console.error('Error:', error);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit';
+  }
+});
+</script>
+
+</body>
+</html>
