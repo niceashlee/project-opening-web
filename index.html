@@ -857,8 +857,9 @@ document.getElementById("authBtn").addEventListener('click', function() {
 <script>
 window.showQuotesHistory = function() {
   document.getElementById('quotesModal').classList.add('open');
-  if(!window._sb){return;}
-  window._sb.auth.getSession().then(function(r){
+  function doLoad() {
+    if(!window._sb){setTimeout(doLoad,300);return;}
+    window._sb.auth.getSession().then(function(r){
     var session=r.data.session;
     if(!session){
       document.getElementById('quotesListWrap').innerHTML="<p class='q-empty'>로그인이 필요합니다.</p>";
@@ -893,6 +894,8 @@ window.showQuotesHistory = function() {
       document.getElementById('quotesListWrap').innerHTML=h;
     });
   });
+  }
+  doLoad();
 };
 
 window.closeQuotesModal = function() {
