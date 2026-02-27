@@ -856,6 +856,7 @@ document.getElementById("authBtn").addEventListener('click', function() {
 
 <script>
 window.showQuotesHistory = function() {
+  function fmt(n){return (n||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,",");}
   document.getElementById('quotesModal').classList.add('open');
   function doLoad() {
     if(!window._sb){setTimeout(doLoad,300);return;}
