@@ -583,7 +583,57 @@ window.updateBulk=function(){
   document.getElementById("bulkBtn").disabled=checks.length===0;
   document.getElementById("bulkBtn").textContent="✓ 선택 "+checks.length+"건 일괄 주문";
 };
-window.bulkOrder=function(){alert("선택하신 항목의 주문이 접수되었습니다.\n담당자가 확인 후 연락드리겠습니다.");};
+window.bulkOrder=function(){
+  // 로그인 확인
+  if(!window._sb){alert("잠시 후 다시 시도해주세요.");return;}
+  window._sb.auth.getSession().then(function(r){
+    var session=r.data.session;
+    if(!session){alert("견적을 저장하려면 로그인이 필요합니다.");openAuthModal('login');return;}
+    
+    var checks=document.querySelectorAll(".oi-check:checked");
+    if(!checks.length){alert("항목을 선택해주세요.");return;}
+    
+    // 선택된 아이템만 추출
+    var selectedItems=[];
+    var totalAmt=0;
+    checks.forEach(function(chk){
+      var it=cart[parseInt(chk.dataset.idx)];
+      if(it){selectedItems.push({name:it.n,category:it.c,tier:it.tier,unit_price:it.p,quantity:it.qty,total:it.p*it.qty});totalAmt+=it.p*it.qty;}
+    });
+    
+    var eventType=document.getElementById("sfType")?document.getElementById("sfType").value:"";
+    var eventDate=document.getElementById("sfDate")?document.getElementById("sfDate").value:null;
+    var location=document.getElementById("sfLoc")?document.getElementById("sfLoc").value:"";
+    var pax=getPax();
+    var desc=document.getElementById("eventDesc")?document.getElementById("eventDesc").value:"";
+    
+    var btn=document.getElementById("bulkBtn");
+    btn.textContent="저장 중...";
+    btn.disabled=true;
+    
+    window._sb.from("quotes").insert({
+      user_id:session.user.id,
+      event_type:eventType||null,
+      event_date:eventDate||null,
+      location:location||null,
+      pax:pax,
+      description:desc||null,
+      items:selectedItems,
+      total_amount:totalAmt,
+      status:"pending"
+    }).then(function(res){
+      btn.textContent="✓ 선택 "+checks.length+"건 일괄 주문";
+      btn.disabled=false;
+      if(res.error){
+        alert("저장 중 오류가 발생했습니다: "+res.error.message);
+      } else {
+        // 성공 시 확인 메시지
+        var ok=confirm("견적이 성공적으로 접수되었습니다! 🎉\n\n총 금액: "+fmt(totalAmt)+"원\n\n내 견적 내역을 확인하시겠습니까?");
+        if(ok) showQuotesHistory();
+      }
+    });
+  });
+};;
 window.logoUp=function(i,inp){if(inp.files.length){document.getElementById("up"+i).classList.add("done");document.getElementById("up"+i).childNodes[0].textContent="✓ 업로드 완료";}};
 
 window.openChat=function(n){document.getElementById("chTitle").textContent=n+" 공급자";document.getElementById("chatM").classList.add("open");};
@@ -770,13 +820,85 @@ document.getElementById("authBtn").addEventListener('click', function() {
   <div id="authMenuTab" style="display:none">
     <div class="auth-logo">PROJECT OPENING</div>
     <h2 class="auth-title">내 계정</h2>
-    <button class="auth-menu-btn" onclick="alert('마이페이지 준비 중입니다.')">📋 내 견적 / 주문 내역</button>
+    <button class="auth-menu-btn" onclick="closeAuthModal();showQuotesHistory()">📋 내 견적 / 주문 내역</button>
     <button class="auth-menu-btn" onclick="alert('프로필 설정 준비 중입니다.')">⚙️ 프로필 설정</button>
     <button class="auth-menu-btn logout" onclick="doLogout()">로그아웃</button>
   </div>
 
 </div>
 </div>
+
+<!-- ============================================ -->
+<!-- 견적 내역 모달 -->
+<!-- ============================================ -->
+<div class="auth-overlay" id="quotesModal" onclick="if(event.target===this)closeQuotesModal()" style="z-index:1001">
+<div class="auth-box" style="max-width:600px;max-height:80vh;overflow-y:auto">
+  <button class="auth-close" onclick="closeQuotesModal()">✕</button>
+  <div class="auth-logo">PROJECT OPENING</div>
+  <h2 class="auth-title">내 견적 / 주문 내역</h2>
+  <div id="quotesListWrap">
+    <p style="text-align:center;color:var(--light);padding:20px">불러오는 중...</p>
+  </div>
+</div>
+</div>
+
+<style>
+.q-card{background:var(--bg-input);border-radius:14px;padding:16px;margin-bottom:12px;border:1.5px solid var(--border)}
+.q-card-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.q-status{font-size:11px;font-weight:700;padding:4px 10px;border-radius:50px}
+.q-status.pending{background:rgba(216,101,200,0.12);color:var(--accent)}
+.q-status.draft{background:rgba(0,0,0,0.06);color:var(--gray)}
+.q-date{font-size:11px;color:var(--light)}
+.q-total{font-size:16px;font-weight:800;color:var(--accent);margin:4px 0}
+.q-items{font-size:12px;color:var(--gray);line-height:1.7}
+.q-empty{text-align:center;padding:32px;color:var(--light);font-size:14px}
+</style>
+
+<script>
+window.showQuotesHistory = function() {
+  document.getElementById('quotesModal').classList.add('open');
+  if(!window._sb){return;}
+  window._sb.auth.getSession().then(function(r){
+    var session=r.data.session;
+    if(!session){
+      document.getElementById('quotesListWrap').innerHTML="<p class='q-empty'>로그인이 필요합니다.</p>";
+      return;
+    }
+    window._sb.from('quotes').select('*').order('created_at',{ascending:false}).then(function(res){
+      if(res.error){
+        document.getElementById('quotesListWrap').innerHTML="<p class='q-empty'>불러오기 실패: "+res.error.message+"</p>";
+        return;
+      }
+      var data=res.data;
+      if(!data||!data.length){
+        document.getElementById('quotesListWrap').innerHTML="<div class='q-empty'>📋 아직 견적 내역이 없어요.<br><small>상품을 선택하고 견적을 요청해보세요!</small></div>";
+        return;
+      }
+      var statusLabel={pending:"접수완료",draft:"임시저장",confirmed:"확정",cancelled:"취소"};
+      var h="";
+      data.forEach(function(q){
+        var dt=new Date(q.created_at);
+        var dtStr=dt.getFullYear()+"."+(dt.getMonth()+1)+"."+dt.getDate();
+        var items=q.items||[];
+        var itemNames=items.map(function(i){return i.name;}).join(", ");
+        var st=q.status||"draft";
+        h+="<div class='q-card'>";
+        h+="<div class='q-card-hd'><span class='q-status "+st+"'>"+( statusLabel[st]||st)+"</span><span class='q-date'>"+dtStr+"</span></div>";
+        if(q.event_type) h+="<div style='font-size:13px;font-weight:700;margin-bottom:2px'>"+q.event_type+"</div>";
+        h+="<div class='q-total'>"+fmt(q.total_amount||0)+"원</div>";
+        if(q.pax) h+="<div class='q-items'>인원: "+q.pax+"명</div>";
+        if(itemNames) h+="<div class='q-items'>구성: "+itemNames+"</div>";
+        h+="</div>";
+      });
+      document.getElementById('quotesListWrap').innerHTML=h;
+    });
+  });
+};
+
+window.closeQuotesModal = function() {
+  document.getElementById('quotesModal').classList.remove('open');
+};
+</script>
 
 </body>
 </html>
