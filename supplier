@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>공급자 대시보드 | PROJECT OPENING</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--cream:#F5F2EB;--black:#1A1A1A;--gray:#666;--light:#999;--accent:#D865C8;--accent2:#C04AB3;--card:#fff;--border:#E8E5DD;--bg:#F0EDE6;--success:#2E7D32;--warning:#F57C00;--danger:#C62828}
+body{font-family:'Noto Sans KR','Archivo',sans-serif;background:var(--cream);color:var(--black);min-height:100vh}
+.hdr{background:rgba(245,242,235,0.97);backdrop-filter:blur(16px);padding:14px 28px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(0,0,0,0.07);position:sticky;top:0;z-index:100}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.logo{font-family:'Archivo',sans-serif;font-weight:900;font-size:12px;letter-spacing:2px;color:var(--black);text-decoration:none}
+.role-badge{font-size:10px;font-weight:700;background:rgba(216,101,200,0.12);color:var(--accent);padding:3px 10px;border-radius:50px;letter-spacing:0.5px}
+.hdr-right{display:flex;gap:8px;align-items:center}
+.user-email{font-size:12px;color:var(--gray)}
+.btn{font-size:12px;font-weight:600;padding:8px 16px;border-radius:50px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--border);background:transparent;color:var(--black);transition:all .2s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.pri:hover{background:var(--accent2)}
+.btn.sm{font-size:11px;padding:6px 12px;border-radius:8px}
+.btn.danger-s{color:var(--danger);border-color:rgba(198,40,40,0.2)}
+.btn.danger-s:hover{background:rgba(198,40,40,0.06);border-color:var(--danger)}
+
+/* AUTH */
+.auth-wrap{max-width:420px;margin:80px auto;padding:0 20px}
+.auth-card{background:#fff;border-radius:24px;padding:40px 36px;box-shadow:0 8px 40px rgba(0,0,0,0.08)}
+.auth-brand{font-family:'Archivo',sans-serif;font-size:10px;font-weight:900;letter-spacing:3px;color:var(--accent);margin-bottom:8px}
+.auth-title{font-size:22px;font-weight:800;margin-bottom:6px}
+.auth-sub{font-size:13px;color:var(--gray);margin-bottom:28px;line-height:1.7}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--gray);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--black);transition:border-color .2s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent)}
+.field textarea{resize:vertical;min-height:80px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.msg{font-size:12px;font-weight:500;min-height:16px;margin-bottom:8px;color:#E57373}
+.msg.ok{color:#2E7D32}
+.submit-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:background .2s;margin-top:4px}
+.submit-btn:hover{background:var(--accent2)}
+.auth-note{text-align:center;font-size:12px;color:var(--light);margin-top:14px;line-height:1.7}
+.auth-note a{color:var(--accent);font-weight:600;text-decoration:none}
+
+/* LAYOUT */
+.main{max-width:1060px;margin:0 auto;padding:28px 24px 80px}
+.page-hd{margin-bottom:24px}
+.page-title{font-family:'Archivo',sans-serif;font-size:24px;font-weight:900;letter-spacing:-0.5px}
+.page-sub{font-size:13px;color:var(--gray);margin-top:4px}
+.banner{border-radius:12px;padding:13px 18px;margin-bottom:20px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.banner.pending{background:rgba(245,124,0,0.08);border:1.5px solid rgba(245,124,0,0.2);color:var(--warning)}
+.banner.approved{background:rgba(46,125,50,0.08);border:1.5px solid rgba(46,125,50,0.2);color:var(--success)}
+.banner.rejected{background:rgba(198,40,40,0.08);border:1.5px solid rgba(198,40,40,0.2);color:var(--danger)}
+
+.tabs{display:flex;gap:3px;padding:4px;background:rgba(0,0,0,0.04);border-radius:12px;width:fit-content;margin-bottom:22px}
+.tab-btn{font-size:13px;font-weight:600;padding:8px 18px;border-radius:9px;cursor:pointer;border:none;background:transparent;color:var(--gray);transition:all .2s;font-family:'Noto Sans KR',sans-serif}
+.tab-btn.on{background:#fff;color:var(--black);box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.panel{display:none}
+.panel.on{display:block}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.stat{background:#fff;border-radius:12px;padding:16px 18px;border:1.5px solid var(--border)}
+.stat-label{font-size:10px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px}
+.stat-val{font-size:24px;font-weight:800}
+.stat-val.hi{color:var(--accent)}
+
+.sec-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.sec-title{font-size:15px;font-weight:700}
+
+.tbl-wrap{background:#fff;border-radius:14px;border:1.5px solid var(--border);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--bg)}
+th{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:0.5px;padding:11px 14px;text-align:left;white-space:nowrap}
+td{padding:13px 14px;font-size:13px;border-top:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:rgba(245,242,235,0.5)}
+.em-col{font-size:18px;width:32px;text-align:center}
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:3px 9px;border-radius:50px}
+.pill-on{background:rgba(46,125,50,0.1);color:var(--success)}
+.pill-off{background:rgba(0,0,0,0.05);color:var(--gray)}
+.pill-basic{background:rgba(21,101,192,0.1);color:#1565C0}
+.pill-diff{background:rgba(216,101,200,0.12);color:var(--accent)}
+.pill-impact{background:rgba(230,81,0,0.1);color:#E65100}
+.pill-cat{background:rgba(0,0,0,0.05);color:var(--gray)}
+.pill-pend{background:rgba(245,124,0,0.1);color:var(--warning)}
+.pill-conf{background:rgba(46,125,50,0.1);color:var(--success)}
+.pill-canc{background:rgba(198,40,40,0.1);color:var(--danger)}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-bg.on{display:flex}
+.modal{background:#fff;border-radius:20px;padding:32px;width:100%;max-width:460px;position:relative;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+.modal-x{position:absolute;top:12px;right:12px;border:none;background:rgba(0,0,0,0.06);font-size:14px;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.modal-x:hover{background:rgba(0,0,0,0.12)}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:18px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+
+.q-card{background:#fff;border-radius:12px;padding:18px;border:1.5px solid var(--border);margin-bottom:10px}
+.q-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.q-items{font-size:12px;color:var(--gray);line-height:2;margin-bottom:6px}
+.q-amt{font-size:15px;font-weight:800;color:var(--accent)}
+
+.prof-card{background:#fff;border-radius:14px;padding:24px;border:1.5px solid var(--border);max-width:480px}
+
+.empty{text-align:center;padding:48px 20px;color:var(--light)}
+.empty-ico{font-size:36px;margin-bottom:10px}
+.empty-t{font-size:14px;font-weight:600;margin-bottom:4px}
+.empty-s{font-size:12px}
+.loading{text-align:center;padding:36px;color:var(--light);font-size:13px}
+.inline-msg{font-size:12px;font-weight:500;padding:8px 12px;border-radius:8px;margin-bottom:10px}
+.inline-msg.err{background:rgba(198,40,40,0.08);color:var(--danger)}
+.inline-msg.ok{background:rgba(46,125,50,0.08);color:var(--success)}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-left">
+    <a class="logo" href="https://projectopening.com">PROJECT OPENING</a>
+    <span class="role-badge">공급자</span>
+  </div>
+  <div class="hdr-right">
+    <span class="user-email" id="userEmail"></span>
+    <button class="btn danger-s" onclick="doLogout()">로그아웃</button>
+  </div>
+</header>
+
+<div id="authScreen">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-brand">PROJECT OPENING</div>
+      <h2 class="auth-title">공급자 로그인</h2>
+      <p class="auth-sub">공급사로 가입한 계정으로 로그인하세요. 바이어 계정은 메인 사이트를 이용해주세요.</p>
+      <div class="field"><label>이메일</label><input type="email" id="loginEmail" placeholder="email@company.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="field"><label>비밀번호</label><input type="password" id="loginPw" placeholder="비밀번호" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="msg" id="loginMsg"></div>
+      <button class="submit-btn" id="loginBtn" onclick="doLogin()">로그인</button>
+      <div class="auth-note">신규 공급사 신청 또는 바이어 계정은 <a href="https://projectopening.com">메인 사이트</a>에서 진행해 주세요.</div>
+    </div>
+  </div>
+</div>
+
+<div id="mainDash" style="display:none">
+  <div class="main">
+    <div class="page-hd">
+      <h1 class="page-title">공급자 대시보드</h1>
+      <p class="page-sub" id="dashSub">내 상품을 관리하고 견적 요청을 확인하세요.</p>
+    </div>
+
+    <div id="statusBanner"></div>
+
+    <div class="tabs">
+      <button class="tab-btn on" onclick="goTab('Products')">📦 내 상품</button>
+      <button class="tab-btn" onclick="goTab('Quotes')">📋 견적 요청</button>
+      <button class="tab-btn" onclick="goTab('Profile')">⚙️ 프로필</button>
+    </div>
+
+    <div class="panel on" id="panelProducts">
+      <div class="stats">
+        <div class="stat"><div class="stat-label">전체 상품</div><div class="stat-val" id="sTotal">-</div></div>
+        <div class="stat"><div class="stat-label">판매 중</div><div class="stat-val hi" id="sActive">-</div></div>
+        <div class="stat"><div class="stat-label">준비 중</div><div class="stat-val" id="sEta">-</div></div>
+        <div class="stat"><div class="stat-label">이번달 견적</div><div class="stat-val" id="sQuotes">-</div></div>
+      </div>
+      <div class="sec-hd">
+        <h2 class="sec-title">내 상품 목록</h2>
+        <button class="btn pri sm" onclick="openProdModal()">+ 상품 추가</button>
+      </div>
+      <div id="prodWrap"><div class="loading">불러오는 중...</div></div>
+    </div>
+
+    <div class="panel" id="panelQuotes">
+      <div class="sec-hd"><h2 class="sec-title">내 상품이 포함된 견적</h2></div>
+      <div id="quotesWrap"><div class="loading">불러오는 중...</div></div>
+    </div>
+
+    <div class="panel" id="panelProfile">
+      <div class="sec-hd">
+        <h2 class="sec-title">공급사 프로필</h2>
+        <button class="btn sm" onclick="saveProfile()">저장</button>
+      </div>
+      <div id="profMsg"></div>
+      <div class="prof-card" id="profForm"><div class="loading">불러오는 중...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 상품 모달 -->
+<div class="modal-bg" id="prodModal" onclick="if(event.target===this)closeProdModal()">
+  <div class="modal">
+    <button class="modal-x" onclick="closeProdModal()">✕</button>
+    <h3 class="modal-title" id="prodModalTitle">상품 추가</h3>
+    <div id="prodModalMsg"></div>
+    <div class="field"><label>상품명 *</label><input type="text" id="pName" placeholder="예: 프리미엄 커피바"></div>
+    <div class="field-row">
+      <div class="field"><label>카테고리 *</label>
+        <select id="pCat"><option value="">선택</option><option value="goods">굿즈</option><option value="catering">케이터링</option><option value="deco">데코레이션</option></select>
+      </div>
+      <div class="field"><label>티어 *</label>
+        <select id="pTier"><option value="">선택</option><option value="basic">Basic</option><option value="diff">Differentiated</option><option value="impact">Impact</option></select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>가격 (원) *</label><input type="number" id="pPrice" placeholder="50000"></div>
+      <div class="field"><label>이모지</label><input type="text" id="pEmoji" placeholder="☕" maxlength="4" style="font-size:20px"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>판매 상태</label>
+        <select id="pAvail"><option value="true">판매 중</option><option value="false">준비 중</option></select>
+      </div>
+      <div class="field"><label>오픈 예정 (준비 중)</label><input type="text" id="pEta" placeholder="예: 4월"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn sm" onclick="closeProdModal()">취소</button>
+      <button class="btn pri sm" id="prodSaveBtn" onclick="saveProd()">저장</button>
+    </div>
+    <input type="hidden" id="editProdId">
+  </div>
+</div>
+
+<!-- 공급사 등록 모달 -->
+<div class="modal-bg on" id="regModal">
+  <div class="modal">
+    <h3 class="modal-title">🏢 공급사 정보 등록</h3>
+    <div id="regMsg"></div>
+    <div class="field"><label>공급사명 *</label><input type="text" id="regName" placeholder="회사 / 브랜드명"></div>
+    <div class="field"><label>카테고리 *</label>
+      <select id="regCat"><option value="">선택</option><option value="goods">굿즈</option><option value="catering">케이터링</option><option value="decoration">데코레이션</option><option value="all">복합</option></select>
+    </div>
+    <div class="field"><label>대표 이메일 *</label><input type="email" id="regEmail" placeholder="business@company.com"></div>
+    <div class="field"><label>연락처</label><input type="text" id="regPhone" placeholder="010-0000-0000"></div>
+    <div class="field"><label>소개</label><textarea id="regDesc" placeholder="취급 상품, 강점, 납품 이력 등"></textarea></div>
+    <button class="submit-btn" onclick="registerSupplier()">신청하기</button>
+    <p style="font-size:11px;color:var(--light);margin-top:10px;text-align:center">승인 후 상품 등록이 가능합니다.</p>
+  </div>
+</div>
+
+<script>
+const SB_URL='https://uduqkekvtflcckjmhnfm.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkdXFrZWt2dGZsY2Nram1obmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MDQyMzUsImV4cCI6MjA4Njk4MDIzNX0.5h1iUUEGU1Kvo1uJQjHtsrlfoFfl5lFSY_le8_5b42A';
+var _sb,curUser,suppRec,myProds=[];
+(function(){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=function(){_sb=supabase.createClient(SB_URL,SB_KEY);_sb.auth.getSession().then(function(r){var sess=r.data.session;if(sess)initDash(sess.user);else showAuth();});_sb.auth.onAuthStateChange(function(e,sess){if(sess)initDash(sess.user);else showAuth();});};document.head.appendChild(s);})();
+function fmt(n){return(n||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function showAuth(){document.getElementById('authScreen').style.display='';document.getElementById('mainDash').style.display='none';document.getElementById('regModal').classList.remove('on');}
+function doLogin(){var em=document.getElementById('loginEmail').value.trim(),pw=document.getElementById('loginPw').value;if(!em||!pw){sm('loginMsg','이메일과 비밀번호를 입력하세요.');return;}document.getElementById('loginBtn').textContent='...';_sb.auth.signInWithPassword({email:em,password:pw}).then(function(r){document.getElementById('loginBtn').textContent='로그인';if(r.error)sm('loginMsg',r.error.message==='Invalid login credentials'?'이메일/비밀번호가 올바르지 않습니다.':r.error.message);});}
+function doLogout(){if(_sb)_sb.auth.signOut();}
+function sm(id,txt,type){var el=document.getElementById(id);if(el){el.textContent=txt;el.className='msg'+(type?' '+type:'');}}
+
+async function initDash(user){
+  curUser=user;
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('mainDash').style.display='';
+  document.getElementById('userEmail').textContent=user.email||'';
+  var role=(user.user_metadata&&user.user_metadata.role)||'buyer';
+  if(role!=='supplier'&&role!=='admin'){
+    document.getElementById('mainDash').innerHTML='<div style="text-align:center;padding:80px 24px"><div style="font-size:36px;margin-bottom:14px">🚫</div><h2 style="font-weight:700;margin-bottom:8px">접근 권한 없음</h2><p style="color:var(--gray);margin-bottom:16px">공급사 계정으로만 접근할 수 있습니다.</p><a href="https://projectopening.com" style="color:var(--accent);font-weight:600">← 메인으로</a></div>';
+    return;
+  }
+  var {data:sup}=await _sb.from('suppliers').select('*').eq('user_id',user.id).maybeSingle();
+  suppRec=sup;
+  if(!suppRec){document.getElementById('regModal').classList.add('on');return;}
+  document.getElementById('regModal').classList.remove('on');
+  var bannerMap={pending:'<div class="banner pending">⏳ 심사 중입니다. 승인 후 상품이 플랫폼에 노출됩니다.</div>',approved:'<div class="banner approved">✅ 승인 완료 — 상품이 플랫폼에 노출 중입니다.</div>',rejected:'<div class="banner rejected">❌ 승인 거절 — 관리자에게 문의하세요.</div>'};
+  document.getElementById('statusBanner').innerHTML=bannerMap[suppRec.status]||'';
+  document.getElementById('dashSub').textContent=(suppRec.name||'')+'  ·  공급자 대시보드';
+  loadProds();loadQuotes();loadProfile();
+}
+
+async function registerSupplier(){
+  var name=document.getElementById('regName').value.trim(),cat=document.getElementById('regCat').value,email=document.getElementById('regEmail').value.trim(),phone=document.getElementById('regPhone').value.trim(),desc=document.getElementById('regDesc').value.trim();
+  if(!name||!cat||!email){document.getElementById('regMsg').innerHTML='<div class="inline-msg err">이름, 카테고리, 이메일은 필수입니다.</div>';return;}
+  var btn=document.querySelector('#regModal .submit-btn');btn.textContent='신청 중...';btn.disabled=true;
+  var {error}=await _sb.from('suppliers').insert({user_id:curUser.id,name:name,category:cat,contact_email:email,phone:phone,description:desc,status:'pending'});
+  btn.textContent='신청하기';btn.disabled=false;
+  if(error){document.getElementById('regMsg').innerHTML='<div class="inline-msg err">'+error.message+'</div>';return;}
+  document.getElementById('regMsg').innerHTML='<div class="inline-msg ok">신청 완료! 관리자 승인 후 대시보드가 열립니다.</div>';
+  setTimeout(function(){window.location.reload();},2000);
+}
+
+function goTab(name){
+  document.querySelectorAll('.tab-btn').forEach(function(b,i){b.classList.toggle('on',['Products','Quotes','Profile'][i]===name);});
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+  document.getElementById('panel'+name).classList.add('on');
+}
+
+async function loadProds(){
+  if(!suppRec){document.getElementById('prodWrap').innerHTML='<div class="empty"><div class="empty-ico">📦</div><div class="empty-t">공급사 승인 후 상품을 추가할 수 있습니다.</div></div>';return;}
+  var {data,error}=await _sb.from('products').select('*').eq("supplier_id",suppRec.id).order("created_at",{ascending:false})});
+  if(error){document.getElementById('prodWrap').innerHTML='<div class="loading">오류: '+error.message+'</div>';return;}
+  myProds=data||[];
+  document.getElementById('sTotal').textContent=myProds.length;
+  document.getElementById('sActive').textContent=myProds.filter(function(p){return p.is_active!==undefined?p.is_active:p.is_available;}).length;
+  document.getElementById('sEta').textContent=myProds.filter(function(p){return !p.is_available;}).length;
+  if(!myProds.length){document.getElementById('prodWrap').innerHTML='<div class="empty"><div class="empty-ico">📦</div><div class="empty-t">등록된 상품이 없습니다.</div><div class="empty-s">상품 추가 버튼을 눌러 시작하세요.</div></div>';return;}
+  var tl={basic:'Basic',diff:'Differentiated',impact:'Impact'},cl={goods:'굿즈',catering:'케이터링',deco:'데코',decoration:'데코'};
+  var rows=myProds.map(function(p){return '<tr><td class="em-col">'+(p.emoji||'📦')+'</td><td><strong>'+p.name+'</strong></td><td><span class="pill pill-cat">'+(cl[p.category]||p.category)+'</span></td><td><span class="pill pill-'+(p.tier||'basic')+'">'+(tl[p.tier]||p.tier)+'</span></td><td>'+fmt(p.unit_price||p.price||0)+'원</td><td>'+(p.is_available?'<span class="pill pill-on">판매 중</span>':'<span class="pill pill-off">준비 중'+(p.eta?' ('+p.eta+')')+'</span>')+'</td><td><button class="btn sm" style="margin-right:5px" onclick="openProdModal('+p.id+')">수정</button><button class="btn sm danger-s" onclick="delProd('+p.id+',\''+p.name.replace(/'/g,'')+'\')">삭제</button></td></tr>';}).join('');
+  document.getElementById('prodWrap').innerHTML='<div class="tbl-wrap"><table><thead><tr><th></th><th>상품명</th><th>카테고리</th><th>티어</th><th>가격</th><th>상태</th><th>관리</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function openProdModal(id){
+  document.getElementById('prodModalMsg').innerHTML='';
+  document.getElementById('editProdId').value=id||'';
+  if(id){var p=myProds.find(function(x){return x.id===id;});if(p){document.getElementById('prodModalTitle').textContent='상품 수정';document.getElementById('pName').value=p.name||'';document.getElementById('pCat').value=p.category||'';document.getElementById('pTier').value=p.tier||'';document.getElementById('pPrice').value=p.price||'';document.getElementById('pEmoji').value=p.emoji||'';document.getElementById('pAvail').value=p.is_active!==undefined?(p.is_active?'true':'false'):(p.is_available?'true':'false');document.getElementById('pEta').value=p.eta||'';}}
+  else{document.getElementById('prodModalTitle').textContent='상품 추가';['pName','pPrice','pEmoji','pEta'].forEach(function(i){document.getElementById(i).value='';});document.getElementById('pCat').value='';document.getElementById('pTier').value='';document.getElementById('pAvail').value='true';}
+  document.getElementById('prodModal').classList.add('on');
+}
+function closeProdModal(){document.getElementById('prodModal').classList.remove('on');}
+
+async function saveProd(){
+  var id=document.getElementById('editProdId').value,name=document.getElementById('pName').value.trim(),cat=document.getElementById('pCat').value,tier=document.getElementById('pTier').value,price=parseInt(document.getElementById('pPrice').value)||0,emoji=document.getElementById('pEmoji').value.trim()||'📦',avail=document.getElementById('pAvail').value==='true',eta=document.getElementById('pEta').value.trim();
+  if(!name||!cat||!tier||!price){document.getElementById('prodModalMsg').innerHTML='<div class="inline-msg err">필수 항목을 입력하세요.</div>';return;}
+  if(!suppRec){document.getElementById('prodModalMsg').innerHTML='<div class="inline-msg err">공급사 정보가 없습니다.</div>';return;}
+  var btn=document.getElementById('prodSaveBtn');btn.textContent='...';btn.disabled=true;
+  var payload={name:name,category:cat,tier:tier,unit_price:price,emoji:emoji,is_active:avail,eta:eta||null,supplier_id:suppRec.id};
+  var res=id?await _sb.from('products').update(payload).eq('id',id):await _sb.from('products').insert(payload);
+  btn.textContent='저장';btn.disabled=false;
+  if(res.error){document.getElementById('prodModalMsg').innerHTML='<div class="inline-msg err">'+res.error.message+'</div>';return;}
+  closeProdModal();loadProds();
+}
+
+async function delProd(id,name){
+  if(!confirm('"'+name+'" 상품을 삭제할까요?'))return;
+  await _sb.from('products').delete().eq('id',id);
+  loadProds();
+}
+
+async function loadQuotes(){
+  document.getElementById('sQuotes').textContent='...';
+  if(!suppRec)return;
+  var {data:myProdRows}=await _sb.from('products').select('name').eq('supplier_id',suppRec.id);
+  var myNames=(myProdRows||[]).map(function(p){return p.name;});
+  var {data:quotes}=await _sb.from('quotes').select('*').order('created_at',{ascending:false});
+  if(!quotes){document.getElementById('sQuotes').textContent='0';document.getElementById('quotesWrap').innerHTML='<div class="empty"><div class="empty-ico">📋</div><div class="empty-t">견적 내역이 없습니다.</div></div>';return;}
+  var myQ=(quotes||[]).filter(function(q){var items=q.items||[];return items.some(function(it){return myNames.indexOf(it.name)!==-1;});});
+  var now=new Date();
+  document.getElementById('sQuotes').textContent=myQ.filter(function(q){var d=new Date(q.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).length;
+  if(!myQ.length){document.getElementById('quotesWrap').innerHTML='<div class="empty"><div class="empty-ico">📋</div><div class="empty-t">내 상품이 포함된 견적이 없습니다.</div></div>';return;}
+  var sl={pending:'접수완료',draft:'임시저장',confirmed:'확정',cancelled:'취소'},sb={pending:'pend',confirmed:'conf',cancelled:'canc',draft:'pill-off'};
+  var h='';
+  myQ.forEach(function(q){
+    var dt=new Date(q.created_at);var ds=dt.getFullYear()+'.'+(dt.getMonth()+1)+'.'+dt.getDate();
+    var items=q.items||[];var mi=items.filter(function(it){return myNames.indexOf(it.name)!==-1;});var mt=mi.reduce(function(s,it){return s+(it.total||0);},0);var st=q.status||'draft';
+    h+='<div class="q-card"><div class="q-hd"><div><span class="pill pill-'+(sb[st]||'')+'">'+((sl[st])||st)+'</span>'+(q.event_type?' <strong style="font-size:13px;margin-left:8px">'+q.event_type+'</strong>':'')+'</div><span style="font-size:11px;color:var(--light)">'+ds+'</span></div>';
+    h+='<div class="q-items">';mi.forEach(function(it){h+='• '+it.name+' × '+it.quantity+'  —  '+fmt(it.total)+'원<br>';});h+='</div>';
+    h+='<div class="q-amt">소계: '+fmt(mt)+'원</div>'+(q.pax?'<div style="font-size:11px;color:var(--light);margin-top:4px">인원: '+q.pax+'명</div>':'')+'</div>';
+  });
+  document.getElementById('quotesWrap').innerHTML=h;
+}
+
+async function loadProfile(){
+  var p=suppRec||{};
+  document.getElementById('profForm').innerHTML='<input type="hidden" id="profSuppId" value="'+(p.id||'')+'"><div class="field"><label>공급사명 *</label><input type="text" id="profName" value="'+(p.name||'')+'"></div><div class="field"><label>카테고리</label><select id="profCat"><option value="goods" '+(p.category==='goods'?'selected':'')+'>굿즈</option><option value="catering" '+(p.category==='catering'?'selected':'')+'>케이터링</option><option value="decoration" '+(p.category==='decoration'?'selected':'')+'>데코레이션</option><option value="all" '+(p.category==='all'?'selected':'')+'>복합</option></select></div><div class="field"><label>대표 이메일</label><input type="email" id="profEmail" value="'+(p.contact_email||'')+'"></div><div class="field"><label>연락처</label><input type="text" id="profPhone" value="'+(p.phone||'')+'"></div><div class="field"><label>소개</label><textarea id="profDesc">'+(p.description||'')+'</textarea></div>';
+}
+
+async function saveProfile(){
+  var id=document.getElementById('profSuppId').value;if(!id)return;
+  var payload={name:document.getElementById('profName').value.trim(),category:document.getElementById('profCat').value,contact_email:document.getElementById('profEmail').value.trim(),phone:document.getElementById('profPhone').value.trim(),description:document.getElementById('profDesc').value.trim()};
+  var {error}=await _sb.from('suppliers').update(payload).eq('id',id);
+  if(error){document.getElementById('profMsg').innerHTML='<div class="inline-msg err">'+error.message+'</div>';return;}
+  document.getElementById('profMsg').innerHTML='<div class="inline-msg ok">저장되었습니다.</div>';
+  Object.assign(suppRec,payload);
+  setTimeout(function(){document.getElementById('profMsg').innerHTML='';},3000);
+}
+</script>
+</body>
+</html>
