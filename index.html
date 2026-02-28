@@ -384,57 +384,29 @@ body{font-family:'Noto Sans KR','Archivo',sans-serif;background:var(--cream);col
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 (function(){
-var ITEMS={
-basic:{
-goods:[
-{n:"로고 프린팅 볼펜",p:3500,em:"✍",ok:true},
-{n:"에코백 테이크아웃",p:5000,em:"🌿",ok:true},
-{n:"기본 명찰 세트",p:2000,em:"📄",ok:true}
-],
-catering:[
-{n:"커피 바 기본",p:150000,em:"☕",ok:true},
-{n:"핑거푸드 세트",p:120000,em:"🍔",ok:true}
-],
-deco:[
-{n:"기본 배너 세트",p:200000,em:"🎈",ok:true},
-{n:"풍선 아치",p:80000,em:"🎈",ok:false,eta:"4월"}
-]
-},
-diff:{
-goods:[
-{n:"마그넷 플래너 세트",p:12000,em:"🎁",ok:true},
-{n:"커스텀 텀블러",p:18000,em:"🍵",ok:true},
-{n:"프리미엄 파우치",p:8500,em:"💼",ok:true}
-],
-catering:[
-{n:"프리미엄 커피바",p:350000,em:"☕",ok:true},
-{n:"칵테일 케이터링",p:450000,em:"🍸",ok:true},
-{n:"핸드크래프트 디저트",p:200000,em:"🍰",ok:false,eta:"4월"}
-],
-deco:[
-{n:"LED 무드라이팅",p:500000,em:"💡",ok:true},
-{n:"플라워 월 설치",p:350000,em:"🌼",ok:true},
-{n:"로고 네온 사인",p:280000,em:"✨",ok:true}
-]
-},
-impact:{
-goods:[
-{n:"럭셔리 기프트 세트",p:45000,em:"💎",ok:true},
-{n:"커스텀 테크 가젯",p:35000,em:"📱",ok:true},
-{n:"한정판 아트 프린트",p:25000,em:"🎨",ok:false,eta:"5월"}
-],
-catering:[
-{n:"셰프 테이블 라이브",p:1200000,em:"👨‍🍳",ok:true},
-{n:"와인 페어링 디너",p:800000,em:"🍷",ok:true},
-{n:"분자 요리 체험바",p:600000,em:"🧪",ok:false,eta:"5월"}
-],
-deco:[
-{n:"몰입형 프로젝션 매핑",p:1500000,em:"🎬",ok:true},
-{n:"인터랙티브 LED 플로어",p:2000000,em:"💫",ok:true},
-{n:"홀로그램 연출",p:1800000,em:"🌟",ok:false,eta:"6월"}
-]
-}
+// 상품 데이터는 Supabase에서 동적으로 로드됩니다
+var ITEMS={basic:{goods:[],catering:[],deco:[]},diff:{goods:[],catering:[],deco:[]},impact:{goods:[],catering:[],deco:[]}};
+var ITEMS_LOADED=false;
+// DB 로드 실패 시 fallback (기존 하드코딩 데이터)
+var ITEMS_FALLBACK={
+basic:{goods:[{n:"로고 프린팅 볼펜",p:3500,em:"✍",ok:true},{n:"에코백 테이크아웃",p:5000,em:"🌿",ok:true},{n:"기본 명찰 세트",p:2000,em:"📄",ok:true}],catering:[{n:"커피 바 기본",p:150000,em:"☕",ok:true},{n:"핑거푸드 세트",p:120000,em:"🍔",ok:true}],deco:[{n:"기본 배너 세트",p:200000,em:"🎈",ok:true},{n:"풍선 아치",p:80000,em:"🎈",ok:false,eta:"4월"}]},
+diff:{goods:[{n:"마그넷 플래너 세트",p:12000,em:"🎁",ok:true},{n:"커스텀 텀블러",p:18000,em:"🍵",ok:true},{n:"프리미엄 파우치",p:8500,em:"💼",ok:true}],catering:[{n:"프리미엄 커피바",p:350000,em:"☕",ok:true},{n:"칵테일 케이터링",p:450000,em:"🍸",ok:true},{n:"핸드크래프트 디저트",p:200000,em:"🍰",ok:false,eta:"4월"}],deco:[{n:"LED 무드라이팅",p:500000,em:"💡",ok:true},{n:"플라워 월 설치",p:350000,em:"🌼",ok:true},{n:"로고 네온 사인",p:280000,em:"✨",ok:true}]},
+impact:{goods:[{n:"럭셔리 기프트 세트",p:45000,em:"💎",ok:true},{n:"커스텀 테크 가젯",p:35000,em:"📱",ok:true},{n:"한정판 아트 프린트",p:25000,em:"🎨",ok:false,eta:"5월"}],catering:[{n:"셰프 테이블 라이브",p:1200000,em:"👨‍🍳",ok:true},{n:"와인 페어링 디너",p:800000,em:"🍷",ok:true},{n:"분자 요리 체험바",p:600000,em:"🧪",ok:false,eta:"5월"}],deco:[{n:"몰입형 프로젝션 매핑",p:1500000,em:"🎬",ok:true},{n:"인터랙티브 LED 플로어",p:2000000,em:"💫",ok:true},{n:"홀로그램 연출",p:1800000,em:"🌟",ok:false,eta:"6월"}]}
 };
+function loadItemsFromDB(sb,callback){
+  if(!sb){ITEMS=JSON.parse(JSON.stringify(ITEMS_FALLBACK));ITEMS_LOADED=true;if(callback)callback();return;}
+  sb.from('products').select('*, suppliers!inner(status)').eq('suppliers.status','approved').then(function(res){
+    if(res.error||!res.data||!res.data.length){ITEMS=JSON.parse(JSON.stringify(ITEMS_FALLBACK));ITEMS_LOADED=true;if(callback)callback();return;}
+    ITEMS={basic:{goods:[],catering:[],deco:[]},diff:{goods:[],catering:[],deco:[]},impact:{goods:[],catering:[],deco:[]}};
+    res.data.forEach(function(p){
+      var tier=p.tier;var cat=p.category==='decoration'?'deco':p.category;
+      var price=p.unit_price||p.price||0; // unit_price 우선, 없으면 price
+      var avail=p.is_active!==undefined?p.is_active:(p.is_available!==undefined?p.is_available:true);
+      if(ITEMS[tier]&&ITEMS[tier][cat]){ITEMS[tier][cat].push({n:p.name,p:price,em:p.emoji||'📦',ok:avail,eta:p.eta||null});}
+    });
+    ITEMS_LOADED=true;if(callback)callback();
+  }).catch(function(){ITEMS=JSON.parse(JSON.stringify(ITEMS_FALLBACK));ITEMS_LOADED=true;if(callback)callback();});
+}
 
 var PITCHES={
 basic:"필수 구성만 깔끔하게.\n합리적 가격으로 행사의 기본을 완성합니다.",
@@ -464,7 +436,13 @@ window.goPage=function(n){
   document.querySelectorAll(".hdr-step").forEach(function(s){var pg=parseInt(s.getAttribute("data-p"));s.className="hdr-step"+(pg===n?" active":pg<n?" done":"");});
   document.getElementById("mainFooter").style.display="";
   window.scrollTo(0,0);
-  if(n===2) renderP2();
+  if(n===2){
+    if(ITEMS_LOADED){renderP2();}
+    else{
+      document.getElementById("p2Area").innerHTML="<div style='text-align:center;padding:60px;color:var(--light)'>⏳ 상품 데이터를 불러오는 중...</div>";
+      loadItemsFromDB(window._sb,function(){renderP2();});
+    }
+  }
   if(n===3) renderP3();
 };
 
@@ -682,6 +660,25 @@ function setLoggedIn(user) {
   var name = email.split('@')[0];
   btn.textContent = name + ' ▾';
   btn.onclick = function() { openAuthModal('menu'); };
+  // 역할에 따라 메뉴 표시
+  var role = (user.user_metadata && user.user_metadata.role) || 'buyer';
+  var supplierBtn = document.getElementById('supplierMenuBtn');
+  var adminBtn = document.getElementById('adminMenuBtn');
+  if(supplierBtn) supplierBtn.style.display = (role==='supplier') ? '' : 'none';
+  // admin은 profiles 테이블 확인 후 표시 (일단 role=admin이면)
+  if(adminBtn) adminBtn.style.display = (role==='admin') ? '' : 'none';
+  // profiles 테이블에서 실제 role 확인
+  if(window._sb){
+    window._sb.from('profiles').select('role').eq('id',user.id).maybeSingle().then(function(r){
+      if(r.data){
+        var pRole=r.data.role;
+        if(supplierBtn) supplierBtn.style.display=(pRole==='supplier'||pRole==='admin')?'':'none';
+        if(adminBtn) adminBtn.style.display=(pRole==='admin')?'':'none';
+      }
+    });
+  }
+  // Supabase 연결 후 products preload
+  if(window._sb && !ITEMS_LOADED) loadItemsFromDB(window._sb, null);
 }
 
 function setLoggedOut() {
@@ -821,7 +818,8 @@ document.getElementById("authBtn").addEventListener('click', function() {
     <div class="auth-logo">PROJECT OPENING</div>
     <h2 class="auth-title">내 계정</h2>
     <button class="auth-menu-btn" onclick="closeAuthModal();showQuotesHistory()">📋 내 견적 / 주문 내역</button>
-    <button class="auth-menu-btn" onclick="alert('프로필 설정 준비 중입니다.')">⚙️ 프로필 설정</button>
+    <button class="auth-menu-btn" id="supplierMenuBtn" style="display:none" onclick="window.open('/supplier.html','_blank')">🏢 공급자 대시보드</button>
+    <button class="auth-menu-btn" id="adminMenuBtn" style="display:none" onclick="window.open('/admin.html','_blank')">⚙️ 관리자 페이지</button>
     <button class="auth-menu-btn logout" onclick="doLogout()">로그아웃</button>
   </div>
 
