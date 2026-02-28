@@ -14,6 +14,7 @@ body{font-family:'Noto Sans KR','Archivo',sans-serif;background:var(--cream);col
 .logo{font-family:'Archivo',sans-serif;font-weight:900;font-size:12px;letter-spacing:2px;color:var(--black);text-decoration:none}
 .role-badge{font-size:10px;font-weight:700;background:rgba(216,101,200,0.12);color:var(--accent);padding:3px 10px;border-radius:50px;letter-spacing:0.5px}
 .hdr-right{display:flex;gap:8px;align-items:center}
+.hdr-right.hidden{display:none}
 .user-email{font-size:12px;color:var(--gray)}
 .btn{font-size:12px;font-weight:600;padding:8px 16px;border-radius:50px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--border);background:transparent;color:var(--black);transition:all .2s}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
@@ -39,8 +40,24 @@ body{font-family:'Noto Sans KR','Archivo',sans-serif;background:var(--cream);col
 .msg.ok{color:#2E7D32}
 .submit-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:background .2s;margin-top:4px}
 .submit-btn:hover{background:var(--accent2)}
+.submit-btn:disabled{opacity:0.5;cursor:not-allowed}
 .auth-note{text-align:center;font-size:12px;color:var(--light);margin-top:14px;line-height:1.7}
-.auth-note a{color:var(--accent);font-weight:600;text-decoration:none}
+.auth-note a{color:var(--accent);font-weight:600;text-decoration:none;cursor:pointer}
+
+/* AUTH TABS */
+.auth-tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:2px solid var(--border)}
+.auth-tab{flex:1;text-align:center;padding:10px 0;font-size:13px;font-weight:700;color:var(--light);cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-2px;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;font-family:'Noto Sans KR',sans-serif}
+.auth-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.auth-tab:hover{color:var(--black)}
+.auth-panel{display:none}
+.auth-panel.on{display:block}
+
+/* WRONG ROLE BANNER */
+.wrong-role{max-width:420px;margin:80px auto;padding:0 20px;text-align:center}
+.wrong-role-card{background:#fff;border-radius:24px;padding:48px 36px;box-shadow:0 8px 40px rgba(0,0,0,0.08)}
+.wrong-role-ico{font-size:48px;margin-bottom:16px}
+.wrong-role-title{font-size:18px;font-weight:800;margin-bottom:8px}
+.wrong-role-desc{font-size:13px;color:var(--gray);line-height:1.7;margin-bottom:24px}
 
 /* LAYOUT */
 .main{max-width:1060px;margin:0 auto;padding:28px 24px 80px}
@@ -108,6 +125,11 @@ tr:hover td{background:rgba(245,242,235,0.5)}
 .inline-msg{font-size:12px;font-weight:500;padding:8px 12px;border-radius:8px;margin-bottom:10px}
 .inline-msg.err{background:rgba(198,40,40,0.08);color:var(--danger)}
 .inline-msg.ok{background:rgba(46,125,50,0.08);color:var(--success)}
+
+/* Password strength */
+.pw-hint{font-size:11px;color:var(--light);margin-top:4px;line-height:1.6}
+.pw-hint.weak{color:var(--danger)}
+.pw-hint.ok{color:var(--success)}
 </style>
 </head>
 <body>
@@ -117,27 +139,65 @@ tr:hover td{background:rgba(245,242,235,0.5)}
     <a class="logo" href="https://projectopening.com">PROJECT OPENING</a>
     <span class="role-badge">공급자</span>
   </div>
-  <div class="hdr-right">
+  <div class="hdr-right hidden" id="hdrRight">
     <span class="user-email" id="userEmail"></span>
     <button class="btn danger-s" onclick="doLogout()">로그아웃</button>
   </div>
 </header>
 
+<!-- AUTH SCREEN: Login + Signup -->
 <div id="authScreen">
   <div class="auth-wrap">
     <div class="auth-card">
       <div class="auth-brand">PROJECT OPENING</div>
-      <h2 class="auth-title">공급자 로그인</h2>
-      <p class="auth-sub">공급사로 가입한 계정으로 로그인하세요. 바이어 계정은 메인 사이트를 이용해주세요.</p>
-      <div class="field"><label>이메일</label><input type="email" id="loginEmail" placeholder="email@company.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <div class="field"><label>비밀번호</label><input type="password" id="loginPw" placeholder="비밀번호" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <div class="msg" id="loginMsg"></div>
-      <button class="submit-btn" id="loginBtn" onclick="doLogin()">로그인</button>
-      <div class="auth-note">신규 공급사 신청 또는 바이어 계정은 <a href="https://projectopening.com">메인 사이트</a>에서 진행해 주세요.</div>
+      <h2 class="auth-title">공급자 포털</h2>
+      <p class="auth-sub">공급사 계정으로 로그인하거나, 새로 가입하세요.</p>
+
+      <div class="auth-tabs">
+        <button class="auth-tab on" onclick="switchAuthTab('login')">로그인</button>
+        <button class="auth-tab" onclick="switchAuthTab('signup')">회원가입</button>
+      </div>
+
+      <!-- LOGIN PANEL -->
+      <div class="auth-panel on" id="authLogin">
+        <div class="field"><label>이메일</label><input type="email" id="loginEmail" placeholder="email@company.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div class="field"><label>비밀번호</label><input type="password" id="loginPw" placeholder="비밀번호" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div class="msg" id="loginMsg"></div>
+        <button class="submit-btn" id="loginBtn" onclick="doLogin()">로그인</button>
+        <div class="auth-note">아직 계정이 없으신가요? <a onclick="switchAuthTab('signup')">회원가입</a></div>
+      </div>
+
+      <!-- SIGNUP PANEL -->
+      <div class="auth-panel" id="authSignup">
+        <div class="field"><label>이메일</label><input type="email" id="signupEmail" placeholder="email@company.com" onkeydown="if(event.key==='Enter')doSignup()"></div>
+        <div class="field">
+          <label>비밀번호</label>
+          <input type="password" id="signupPw" placeholder="8자 이상" oninput="checkPwStrength()" onkeydown="if(event.key==='Enter')doSignup()">
+          <div class="pw-hint" id="pwHint">영문, 숫자 포함 8자 이상</div>
+        </div>
+        <div class="field"><label>비밀번호 확인</label><input type="password" id="signupPwConfirm" placeholder="비밀번호 재입력" onkeydown="if(event.key==='Enter')doSignup()"></div>
+        <div class="msg" id="signupMsg"></div>
+        <button class="submit-btn" id="signupBtn" onclick="doSignup()">가입하기</button>
+        <div class="auth-note">이미 계정이 있으신가요? <a onclick="switchAuthTab('login')">로그인</a></div>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- WRONG ROLE SCREEN (admin trying to access supplier) -->
+<div id="wrongRoleScreen" style="display:none">
+  <div class="wrong-role">
+    <div class="wrong-role-card">
+      <div class="wrong-role-ico">🔒</div>
+      <div class="wrong-role-title">공급자 전용 페이지입니다</div>
+      <div class="wrong-role-desc">현재 관리자 계정(<span id="wrongRoleEmail"></span>)으로 로그인되어 있습니다. 공급자 계정으로 다시 로그인해 주세요.</div>
+      <button class="btn pri" onclick="doLogout()" style="width:100%;padding:14px;border-radius:12px;font-size:14px;font-weight:700">로그아웃 후 다시 로그인</button>
+      <div class="auth-note" style="margin-top:16px"><a href="https://projectopening.com/admin.html">관리자 대시보드로 이동 →</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN DASHBOARD -->
 <div id="mainDash" style="display:none">
   <div class="main">
     <div class="page-hd">
@@ -216,10 +276,11 @@ tr:hover td{background:rgba(245,242,235,0.5)}
   </div>
 </div>
 
-<!-- 공급사 등록 모달 -->
+<!-- 공급사 등록 모달 (로그인 후 supplier 레코드 없을 때) -->
 <div class="modal-bg" id="regModal">
   <div class="modal">
     <h3 class="modal-title">🏢 공급사 정보 등록</h3>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:18px;line-height:1.6">계정이 확인되었습니다. 공급사 정보를 등록하면 관리자 승인 후 대시보드를 이용할 수 있습니다.</p>
     <div id="regMsg"></div>
     <div class="field"><label>공급사명 *</label><input type="text" id="regName" placeholder="회사 / 브랜드명"></div>
     <div class="field"><label>카테고리 *</label>
@@ -245,11 +306,12 @@ var _sb,curUser,suppRec,myProds=[];
     _sb=supabase.createClient(SB_URL,SB_KEY);
     _sb.auth.getSession().then(function(r){
       var sess=r.data.session;
-      if(sess) initDash(sess.user);
+      if(sess) handleAuth(sess.user);
       else showAuth();
     });
     _sb.auth.onAuthStateChange(function(e,sess){
-      if(sess) initDash(sess.user);
+      if(e==='SIGNED_OUT'){showAuth();return;}
+      if(sess) handleAuth(sess.user);
       else showAuth();
     });
   };
@@ -258,20 +320,133 @@ var _sb,curUser,suppRec,myProds=[];
 
 function fmt(n){return(n||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 
-function showAuth(){
-  document.getElementById('authScreen').style.display='';
+// ============ AUTH TAB SWITCHING ============
+function switchAuthTab(tab){
+  document.querySelectorAll('.auth-tab').forEach(function(t){t.classList.remove('on');});
+  document.querySelectorAll('.auth-panel').forEach(function(p){p.classList.remove('on');});
+  if(tab==='login'){
+    document.querySelectorAll('.auth-tab')[0].classList.add('on');
+    document.getElementById('authLogin').classList.add('on');
+  } else {
+    document.querySelectorAll('.auth-tab')[1].classList.add('on');
+    document.getElementById('authSignup').classList.add('on');
+  }
+}
+
+function checkPwStrength(){
+  var pw=document.getElementById('signupPw').value;
+  var hint=document.getElementById('pwHint');
+  if(pw.length<8){
+    hint.textContent='8자 이상 입력해 주세요 (현재 '+pw.length+'자)';
+    hint.className='pw-hint weak';
+  } else if(!/[a-zA-Z]/.test(pw)||!/[0-9]/.test(pw)){
+    hint.textContent='영문과 숫자를 모두 포함해 주세요';
+    hint.className='pw-hint weak';
+  } else {
+    hint.textContent='사용 가능한 비밀번호입니다';
+    hint.className='pw-hint ok';
+  }
+}
+
+// ============ SCREEN MANAGEMENT ============
+function hideAll(){
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('wrongRoleScreen').style.display='none';
   document.getElementById('mainDash').style.display='none';
+  document.getElementById('hdrRight').classList.add('hidden');
   document.getElementById('regModal').classList.remove('on');
 }
 
+function showAuth(){
+  hideAll();
+  document.getElementById('authScreen').style.display='';
+  // Clear form fields
+  ['loginEmail','loginPw','signupEmail','signupPw','signupPwConfirm'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.value='';
+  });
+  ['loginMsg','signupMsg'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.textContent='';
+  });
+  switchAuthTab('login');
+}
+
+function showWrongRole(user){
+  hideAll();
+  document.getElementById('wrongRoleScreen').style.display='';
+  document.getElementById('wrongRoleEmail').textContent=user.email||'';
+  // Show header with logout option
+  document.getElementById('hdrRight').classList.remove('hidden');
+  document.getElementById('userEmail').textContent=user.email||'';
+}
+
+function showDash(){
+  hideAll();
+  document.getElementById('mainDash').style.display='';
+  document.getElementById('hdrRight').classList.remove('hidden');
+}
+
+// ============ AUTH HANDLER (role check) ============
+async function handleAuth(user){
+  curUser=user;
+  
+  // Check if this user is an admin — if so, block access to supplier page
+  var {data:profile}=await _sb.from('profiles').select('role').eq('id',user.id).maybeSingle();
+  
+  if(profile && profile.role==='admin'){
+    showWrongRole(user);
+    return;
+  }
+  
+  // Not admin — proceed to supplier dashboard
+  document.getElementById('userEmail').textContent=user.email||'';
+  initDash(user);
+}
+
+// ============ LOGIN ============
 function doLogin(){
   var em=document.getElementById('loginEmail').value.trim();
   var pw=document.getElementById('loginPw').value;
   if(!em||!pw){sm('loginMsg','이메일과 비밀번호를 입력하세요.');return;}
-  document.getElementById('loginBtn').textContent='...';
+  var btn=document.getElementById('loginBtn');
+  btn.textContent='로그인 중...';btn.disabled=true;
   _sb.auth.signInWithPassword({email:em,password:pw}).then(function(r){
-    document.getElementById('loginBtn').textContent='로그인';
-    if(r.error) sm('loginMsg',r.error.message==='Invalid login credentials'?'이메일/비밀번호가 올바르지 않습니다.':r.error.message);
+    btn.textContent='로그인';btn.disabled=false;
+    if(r.error){
+      var msg=r.error.message;
+      if(msg==='Invalid login credentials') msg='이메일 또는 비밀번호가 올바르지 않습니다.';
+      sm('loginMsg',msg);
+    }
+  });
+}
+
+// ============ SIGNUP ============
+function doSignup(){
+  var em=document.getElementById('signupEmail').value.trim();
+  var pw=document.getElementById('signupPw').value;
+  var pwc=document.getElementById('signupPwConfirm').value;
+  
+  if(!em){sm('signupMsg','이메일을 입력하세요.');return;}
+  if(pw.length<8){sm('signupMsg','비밀번호는 8자 이상이어야 합니다.');return;}
+  if(!/[a-zA-Z]/.test(pw)||!/[0-9]/.test(pw)){sm('signupMsg','비밀번호에 영문과 숫자를 모두 포함해 주세요.');return;}
+  if(pw!==pwc){sm('signupMsg','비밀번호가 일치하지 않습니다.');return;}
+  
+  var btn=document.getElementById('signupBtn');
+  btn.textContent='가입 중...';btn.disabled=true;
+  
+  _sb.auth.signUp({email:em,password:pw}).then(function(r){
+    btn.textContent='가입하기';btn.disabled=false;
+    if(r.error){
+      var msg=r.error.message;
+      if(msg.includes('already registered')) msg='이미 가입된 이메일입니다. 로그인해 주세요.';
+      sm('signupMsg',msg);
+      return;
+    }
+    // Supabase may auto-confirm or require email verification depending on settings
+    if(r.data.user && !r.data.session){
+      // Email confirmation required
+      sm('signupMsg','가입 완료! 이메일 인증 링크를 확인해 주세요.','ok');
+    }
+    // If auto-confirmed, onAuthStateChange will trigger and call handleAuth
   });
 }
 
@@ -282,18 +457,21 @@ function sm(id,txt,type){
   if(el){el.textContent=txt;el.className='msg'+(type?' '+type:'');}
 }
 
+// ============ DASHBOARD INIT ============
 async function initDash(user){
   curUser=user;
-  document.getElementById('authScreen').style.display='none';
-  document.getElementById('mainDash').style.display='';
-  document.getElementById('userEmail').textContent=user.email||'';
+  showDash();
 
   // Check supplier record
   var {data:sup}=await _sb.from('suppliers').select('*').eq('user_id',user.id).maybeSingle();
   suppRec=sup;
 
   if(!suppRec){
+    // Show registration modal
     document.getElementById('regModal').classList.add('on');
+    // Pre-fill email if available
+    var regEmailEl=document.getElementById('regEmail');
+    if(regEmailEl && !regEmailEl.value) regEmailEl.value=user.email||'';
     return;
   }
 
@@ -330,6 +508,7 @@ async function registerSupplier(){
   setTimeout(function(){window.location.reload();},2000);
 }
 
+// ============ TABS ============
 function goTab(name){
   document.querySelectorAll('.tab-btn').forEach(function(b,i){
     b.classList.toggle('on',['Products','Quotes','Profile'][i]===name);
@@ -338,12 +517,12 @@ function goTab(name){
   document.getElementById('panel'+name).classList.add('on');
 }
 
+// ============ PRODUCTS ============
 async function loadProds(){
   if(!suppRec){
     document.getElementById('prodWrap').innerHTML='<div class="empty"><div class="empty-ico">📦</div><div class="empty-t">공급사 승인 후 상품을 추가할 수 있습니다.</div></div>';
     return;
   }
-  /* FIX 1: removed extra }) at the end */
   var {data,error}=await _sb.from('products').select('*').eq("supplier_id",suppRec.id).order("created_at",{ascending:false});
   if(error){
     document.getElementById('prodWrap').innerHTML='<div class="loading">오류: '+error.message+'</div>';
@@ -359,9 +538,9 @@ async function loadProds(){
   }
   var tl={basic:'Basic',diff:'Differentiated',impact:'Impact'};
   var cl={goods:'굿즈',catering:'케이터링',deco:'데코',decoration:'데코'};
-  /* FIX 2: added missing :'' in ternary for p.eta */
   var rows=myProds.map(function(p){
-    return '<tr><td class="em-col">'+(p.emoji||'📦')+'</td><td><strong>'+p.name+'</strong></td><td><span class="pill pill-cat">'+(cl[p.category]||p.category)+'</span></td><td><span class="pill pill-'+(p.tier||'basic')+'">'+(tl[p.tier]||p.tier)+'</span></td><td>'+fmt(p.unit_price||p.price||0)+'원</td><td>'+(p.is_available?'<span class="pill pill-on">판매 중</span>':'<span class="pill pill-off">준비 중'+(p.eta?' ('+p.eta+')':'')+'</span>')+'</td><td><button class="btn sm" style="margin-right:5px" onclick="openProdModal('+p.id+')">수정</button><button class="btn sm danger-s" onclick="delProd('+p.id+',\''+p.name.replace(/'/g,'')+'\')">삭제</button></td></tr>';
+    var isOn=p.is_active!==undefined?p.is_active:p.is_available;
+    return '<tr><td class="em-col">'+(p.emoji||'📦')+'</td><td><strong>'+p.name+'</strong></td><td><span class="pill pill-cat">'+(cl[p.category]||p.category)+'</span></td><td><span class="pill pill-'+(p.tier||'basic')+'">'+(tl[p.tier]||p.tier)+'</span></td><td>'+fmt(p.unit_price||p.price||0)+'원</td><td>'+(isOn?'<span class="pill pill-on">판매 중</span>':'<span class="pill pill-off">준비 중'+(p.eta?' ('+p.eta+')':'')+'</span>')+'</td><td><button class="btn sm" style="margin-right:5px" onclick="openProdModal(\''+p.id+'\')">수정</button><button class="btn sm danger-s" onclick="delProd(\''+p.id+'\',\''+((p.name||'').replace(/'/g,'\\\''))+'\')">삭제</button></td></tr>';
   }).join('');
   document.getElementById('prodWrap').innerHTML='<div class="tbl-wrap"><table><thead><tr><th></th><th>상품명</th><th>카테고리</th><th>티어</th><th>가격</th><th>상태</th><th>관리</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
@@ -370,13 +549,13 @@ function openProdModal(id){
   document.getElementById('prodModalMsg').innerHTML='';
   document.getElementById('editProdId').value=id||'';
   if(id){
-    var p=myProds.find(function(x){return x.id===id;});
+    var p=myProds.find(function(x){return x.id==id;});
     if(p){
       document.getElementById('prodModalTitle').textContent='상품 수정';
       document.getElementById('pName').value=p.name||'';
       document.getElementById('pCat').value=p.category||'';
       document.getElementById('pTier').value=p.tier||'';
-      document.getElementById('pPrice').value=p.price||'';
+      document.getElementById('pPrice').value=p.unit_price||p.price||'';
       document.getElementById('pEmoji').value=p.emoji||'';
       document.getElementById('pAvail').value=p.is_active!==undefined?(p.is_active?'true':'false'):(p.is_available?'true':'false');
       document.getElementById('pEta').value=p.eta||'';
@@ -428,6 +607,7 @@ async function delProd(id,name){
   loadProds();
 }
 
+// ============ QUOTES ============
 async function loadQuotes(){
   document.getElementById('sQuotes').textContent='...';
   if(!suppRec) return;
@@ -471,6 +651,7 @@ async function loadQuotes(){
   document.getElementById('quotesWrap').innerHTML=h;
 }
 
+// ============ PROFILE ============
 async function loadProfile(){
   var p=suppRec||{};
   document.getElementById('profForm').innerHTML='<input type="hidden" id="profSuppId" value="'+(p.id||'')+'"><div class="field"><label>공급사명 *</label><input type="text" id="profName" value="'+(p.name||'')+'"></div><div class="field"><label>카테고리</label><select id="profCat"><option value="goods" '+(p.category==='goods'?'selected':'')+'>굿즈</option><option value="catering" '+(p.category==='catering'?'selected':'')+'>케이터링</option><option value="decoration" '+(p.category==='decoration'?'selected':'')+'>데코레이션</option><option value="all" '+(p.category==='all'?'selected':'')+'>복합</option></select></div><div class="field"><label>대표 이메일</label><input type="email" id="profEmail" value="'+(p.contact_email||'')+'"></div><div class="field"><label>연락처</label><input type="text" id="profPhone" value="'+(p.phone||'')+'"></div><div class="field"><label>소개</label><textarea id="profDesc">'+(p.description||'')+'</textarea></div>';
