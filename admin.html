@@ -445,15 +445,32 @@ async function loadProducts(){
     return true;
   });
   if(!filtered.length){document.getElementById('prodTableWrap').innerHTML='<div class="empty"><div class="empty-ico">📦</div><div class="empty-t">상품이 없습니다.</div></div>';return;}
-  var tl={basic:'Basic',diff:'Differentiated',impact:'Impact'},cl={goods:'굿즈',catering:'케이터링',deco:'데코',decoration:'데코'};
-  var rows=filtered.map(function(p){
+  var tl={basic:'Basic',diff:'Differentiated',impact:'Impact'};
+  var cl={goods:'굿즈',catering:'케이터링',deco:'데코',decoration:'데코'};
+  var tbody='';
+  filtered.forEach(function(p){
     var supp=allSuppliers.find(function(s){return s.id===p.supplier_id;});
-    return '<tr><td class="em-col">'+(p.emoji||'📦')+'</td><td><strong>'+p.name+'</strong></td><td><span class="pill pill-cat">'+(cl[p.category]||p.category)+'</span></td><td><span class="pill pill-'+(p.tier||'basic')+'">'+(tl[p.tier]||p.tier)+'</span></td><td>'+fmt(p.unit_price||p.price||0)+'원</td><td>'+(supp?supp.name:'-')+'</td><td>'+((p.is_active!==undefined?p.is_active:p.is_available)?'<span class="pill pill-on">판매 중</span>':'<span class="pill pill-off">준비 중'+(p.eta?' ('+p.eta+')')+'</span>')+'</td><td><button class="btn danger-s sm" onclick="deleteProd('+p.id+')">삭제</button></td></tr>';
-  }).join('');
-  document.getElementById('prodTableWrap').innerHTML='<div class="tbl-wrap"><table><thead><tr><th></th><th>상품명</th><th>카테고리</th><th>티어</th><th>가격</th><th>공급사</th><th>상태</th><th>관리</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    var isOn=p.is_active!==undefined?p.is_active:p.is_available;
+    var catName=cl[p.category]||p.category;
+    var tierName=tl[p.tier]||p.tier||'basic';
+    var suppName=supp?supp.name:'-';
+    var statusHtml=isOn?'<span class="pill pill-on">판매 중</span>':'<span class="pill pill-off">준비 중'+(p.eta?' ('+p.eta+')')+'</span>';
+    tbody+='<tr>';
+    tbody+='<td class="em-col">'+(p.emoji||'📦')+'</td>';
+    tbody+='<td><strong>'+p.name+'</strong></td>';
+    tbody+='<td><span class="pill pill-cat">'+catName+'</span></td>';
+    tbody+='<td><span class="pill pill-'+(p.tier||'basic')+'">'+tierName+'</span></td>';
+    tbody+='<td>'+fmt(p.unit_price||p.price||0)+'원</td>';
+    tbody+='<td>'+suppName+'</td>';
+    tbody+='<td>'+statusHtml+'</td>';
+    tbody+='<td><button class="btn danger-s sm" onclick="deleteProd(this)" data-id="'+p.id+'">삭제</button></td>';
+    tbody+='</tr>';
+  });
+  document.getElementById('prodTableWrap').innerHTML='<div class="tbl-wrap"><table><thead><tr><th></th><th>상품명</th><th>카테고리</th><th>티어</th><th>가격</th><th>공급사</th><th>상태</th><th>관리</th></tr></thead><tbody>'+tbody+'</tbody></table></div>';
 }
 
-async function deleteProd(id){
+async function deleteProd(btn){
+  var id=btn.getAttribute('data-id');
   var p=allProducts.find(function(x){return x.id===id;});var name=p?p.name:'이 상품';
   if(!confirm('"'+name+'" 상품을 삭제할까요?'))return;
   await _sb.from('products').delete().eq('id',id);
