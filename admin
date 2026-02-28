@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>관리자 대시보드 | PROJECT OPENING</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--cream:#F5F2EB;--black:#1A1A1A;--gray:#666;--light:#999;--accent:#D865C8;--accent2:#C04AB3;--card:#fff;--border:#E8E5DD;--bg:#F0EDE6;--success:#2E7D32;--warning:#F57C00;--danger:#C62828;--info:#1565C0}
+body{font-family:'Noto Sans KR','Archivo',sans-serif;background:var(--cream);color:var(--black);min-height:100vh}
+.hdr{background:rgba(26,26,26,0.97);backdrop-filter:blur(16px);padding:14px 28px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.07);position:sticky;top:0;z-index:100}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.logo{font-family:'Archivo',sans-serif;font-weight:900;font-size:12px;letter-spacing:2px;color:#fff;text-decoration:none}
+.role-badge{font-size:10px;font-weight:700;background:rgba(216,101,200,0.2);color:var(--accent);padding:3px 10px;border-radius:50px;letter-spacing:0.5px}
+.hdr-right{display:flex;gap:8px;align-items:center}
+.user-email{font-size:12px;color:rgba(255,255,255,0.5)}
+.btn{font-size:12px;font-weight:600;padding:8px 16px;border-radius:50px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid rgba(255,255,255,0.15);background:transparent;color:#fff;transition:all .2s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.pri:hover{background:var(--accent2)}
+.btn.sm{font-size:11px;padding:6px 12px;border-radius:8px}
+.btn.lgt{background:#fff;color:var(--black);border-color:var(--border)}
+.btn.lgt:hover{border-color:var(--accent);color:var(--accent)}
+.btn.danger-s{color:var(--danger);border-color:rgba(198,40,40,0.2);background:transparent}
+.btn.danger-s:hover{background:rgba(198,40,40,0.06);border-color:var(--danger)}
+.btn.success-s{color:var(--success);border-color:rgba(46,125,50,0.2);background:transparent}
+.btn.success-s:hover{background:rgba(46,125,50,0.06);border-color:var(--success)}
+
+/* AUTH */
+.auth-wrap{max-width:420px;margin:80px auto;padding:0 20px}
+.auth-card{background:#fff;border-radius:24px;padding:40px 36px;box-shadow:0 8px 40px rgba(0,0,0,0.08)}
+.auth-brand{font-family:'Archivo',sans-serif;font-size:10px;font-weight:900;letter-spacing:3px;color:var(--accent);margin-bottom:8px}
+.auth-title{font-size:22px;font-weight:800;margin-bottom:6px}
+.auth-sub{font-size:13px;color:var(--gray);margin-bottom:28px;line-height:1.7}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--gray);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--black);transition:border-color .2s}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
+.msg{font-size:12px;font-weight:500;min-height:16px;margin-bottom:8px;color:#E57373}
+.submit-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:background .2s;margin-top:4px}
+.submit-btn:hover{background:var(--accent2)}
+
+/* LAYOUT */
+.layout{display:flex;min-height:calc(100vh - 53px)}
+.sidebar{width:200px;background:rgba(26,26,26,0.03);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+.sidebar-item{display:flex;align-items:center;gap:8px;padding:11px 20px;font-size:13px;font-weight:600;color:var(--gray);cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:'Noto Sans KR',sans-serif;width:100%;text-align:left}
+.sidebar-item:hover{color:var(--black);background:rgba(0,0,0,0.02)}
+.sidebar-item.on{color:var(--accent);background:rgba(216,101,200,0.06)}
+.content{flex:1;padding:28px;overflow-x:auto}
+.page-title{font-family:'Archivo',sans-serif;font-size:22px;font-weight:900;letter-spacing:-0.5px;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--gray);margin-bottom:22px}
+.panel{display:none}
+.panel.on{display:block}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.stat{background:#fff;border-radius:12px;padding:16px 18px;border:1.5px solid var(--border)}
+.stat-label{font-size:10px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px}
+.stat-val{font-size:24px;font-weight:800}
+.stat-val.a{color:var(--accent)}
+.stat-val.g{color:var(--success)}
+.stat-val.w{color:var(--warning)}
+.stat-val.r{color:var(--danger)}
+
+/* TABLE */
+.tbl-wrap{background:#fff;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:20px}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--bg)}
+th{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:0.5px;padding:11px 14px;text-align:left;white-space:nowrap}
+td{padding:12px 14px;font-size:13px;border-top:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:rgba(245,242,235,0.5)}
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:3px 9px;border-radius:50px;white-space:nowrap}
+.pill-on{background:rgba(46,125,50,0.1);color:var(--success)}
+.pill-off{background:rgba(0,0,0,0.05);color:var(--gray)}
+.pill-basic{background:rgba(21,101,192,0.1);color:#1565C0}
+.pill-diff{background:rgba(216,101,200,0.12);color:var(--accent)}
+.pill-impact{background:rgba(230,81,0,0.1);color:#E65100}
+.pill-cat{background:rgba(0,0,0,0.05);color:var(--gray)}
+.pill-pend{background:rgba(245,124,0,0.1);color:var(--warning)}
+.pill-conf{background:rgba(46,125,50,0.1);color:var(--success)}
+.pill-canc{background:rgba(198,40,40,0.1);color:var(--danger)}
+.pill-appr{background:rgba(46,125,50,0.1);color:var(--success)}
+.pill-rej{background:rgba(198,40,40,0.1);color:var(--danger)}
+.pill-draft{background:rgba(0,0,0,0.05);color:var(--gray)}
+.em-col{font-size:18px;width:32px;text-align:center}
+.sec-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.sec-title{font-size:15px;font-weight:700}
+.filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.filter-row select{padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans KR',sans-serif;background:#fff;color:var(--black);cursor:pointer}
+.filter-row select:focus{outline:none;border-color:var(--accent)}
+.search-input{padding:7px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:'Noto Sans KR',sans-serif;background:#fff;width:180px}
+.search-input:focus{outline:none;border-color:var(--accent)}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-bg.on{display:flex}
+.modal{background:#fff;border-radius:20px;padding:32px;width:100%;max-width:500px;position:relative;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+.modal-x{position:absolute;top:12px;right:12px;border:none;background:rgba(0,0,0,0.06);font-size:14px;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.modal-x:hover{background:rgba(0,0,0,0.12)}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:18px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.inline-msg{font-size:12px;font-weight:500;padding:8px 12px;border-radius:8px;margin-bottom:10px}
+.inline-msg.err{background:rgba(198,40,40,0.08);color:var(--danger)}
+.inline-msg.ok{background:rgba(46,125,50,0.08);color:var(--success)}
+
+/* QUOTE DETAIL */
+.q-items-list{font-size:12px;color:var(--gray);line-height:2;margin:10px 0}
+.q-detail-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border)}
+.q-detail-row:last-child{border-bottom:none;font-weight:700;font-size:14px;color:var(--accent)}
+
+.empty{text-align:center;padding:48px 20px;color:var(--light)}
+.empty-ico{font-size:36px;margin-bottom:10px}
+.empty-t{font-size:14px;font-weight:600}
+.loading{text-align:center;padding:36px;color:var(--light);font-size:13px}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-left">
+    <a class="logo" href="https://projectopening.com">PROJECT OPENING</a>
+    <span class="role-badge">관리자</span>
+  </div>
+  <div class="hdr-right">
+    <span class="user-email" id="userEmail"></span>
+    <button class="btn" onclick="doLogout()">로그아웃</button>
+  </div>
+</header>
+
+<div id="authScreen">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-brand">PROJECT OPENING</div>
+      <h2 class="auth-title">관리자 로그인</h2>
+      <p class="auth-sub">관리자 계정으로 로그인하세요. 관리자 권한이 없으면 접근이 제한됩니다.</p>
+      <div class="field"><label>이메일</label><input type="email" id="loginEmail" placeholder="admin@projectopening.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="field"><label>비밀번호</label><input type="password" id="loginPw" placeholder="비밀번호" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="msg" id="loginMsg"></div>
+      <button class="submit-btn" id="loginBtn" onclick="doLogin()">로그인</button>
+    </div>
+  </div>
+</div>
+
+<div id="mainDash" style="display:none">
+  <div class="layout">
+    <nav class="sidebar">
+      <button class="sidebar-item on" onclick="goPanel('Overview')">📊 개요</button>
+      <button class="sidebar-item" onclick="goPanel('Quotes')">📋 견적 관리</button>
+      <button class="sidebar-item" onclick="goPanel('Suppliers')">🏢 공급사 관리</button>
+      <button class="sidebar-item" onclick="goPanel('Products')">📦 상품 관리</button>
+      <button class="sidebar-item" onclick="goPanel('Users')">👥 유저</button>
+    </nav>
+    <main class="content">
+
+      <!-- 개요 -->
+      <div class="panel on" id="panelOverview">
+        <h1 class="page-title">개요</h1>
+        <p class="page-sub" id="todayDate">플랫폼 현황을 확인하세요.</p>
+        <div class="stats">
+          <div class="stat"><div class="stat-label">전체 견적</div><div class="stat-val a" id="ovQuotes">-</div></div>
+          <div class="stat"><div class="stat-label">이번달 견적</div><div class="stat-val" id="ovMonthly">-</div></div>
+          <div class="stat"><div class="stat-label">공급사</div><div class="stat-val" id="ovSuppliers">-</div></div>
+          <div class="stat"><div class="stat-label">심사 대기</div><div class="stat-val w" id="ovPending">-</div></div>
+          <div class="stat"><div class="stat-label">전체 상품</div><div class="stat-val" id="ovProds">-</div></div>
+          <div class="stat"><div class="stat-label">이번달 금액</div><div class="stat-val g" id="ovRevenue">-</div></div>
+        </div>
+        <div class="sec-hd"><h2 class="sec-title">최근 견적 5건</h2><button class="btn lgt sm" onclick="goPanel('Quotes')">전체 보기 →</button></div>
+        <div id="recentQuotes"><div class="loading">불러오는 중...</div></div>
+      </div>
+
+      <!-- 견적 관리 -->
+      <div class="panel" id="panelQuotes">
+        <h1 class="page-title">견적 관리</h1>
+        <p class="page-sub">접수된 모든 견적을 관리합니다.</p>
+        <div class="filter-row">
+          <select id="quoteStatusFilter" onchange="loadQuotes()">
+            <option value="">전체 상태</option>
+            <option value="pending">접수완료</option>
+            <option value="confirmed">확정</option>
+            <option value="cancelled">취소</option>
+            <option value="draft">임시저장</option>
+          </select>
+          <input class="search-input" id="quoteSearch" placeholder="행사 유형 검색..." oninput="loadQuotes()">
+        </div>
+        <div id="quotesTableWrap"><div class="loading">불러오는 중...</div></div>
+      </div>
+
+      <!-- 공급사 관리 -->
+      <div class="panel" id="panelSuppliers">
+        <h1 class="page-title">공급사 관리</h1>
+        <p class="page-sub">등록된 공급사 심사 및 관리.</p>
+        <div class="filter-row">
+          <select id="suppStatusFilter" onchange="loadSuppliers()">
+            <option value="">전체 상태</option>
+            <option value="pending">심사 대기</option>
+            <option value="approved">승인</option>
+            <option value="rejected">거절</option>
+          </select>
+        </div>
+        <div id="suppTableWrap"><div class="loading">불러오는 중...</div></div>
+      </div>
+
+      <!-- 상품 관리 -->
+      <div class="panel" id="panelProducts">
+        <h1 class="page-title">상품 관리</h1>
+        <p class="page-sub">플랫폼에 등록된 전체 상품 현황.</p>
+        <div class="filter-row">
+          <select id="prodCatFilter" onchange="loadProducts()">
+            <option value="">전체 카테고리</option>
+            <option value="goods">굿즈</option>
+            <option value="catering">케이터링</option>
+            <option value="deco">데코</option>
+          </select>
+          <select id="prodTierFilter" onchange="loadProducts()">
+            <option value="">전체 티어</option>
+            <option value="basic">Basic</option>
+            <option value="diff">Differentiated</option>
+            <option value="impact">Impact</option>
+          </select>
+          <select id="prodSuppFilter" onchange="loadProducts()"><option value="">전체 공급사</option></select>
+        </div>
+        <div id="prodTableWrap"><div class="loading">불러오는 중...</div></div>
+      </div>
+
+      <!-- 유저 -->
+      <div class="panel" id="panelUsers">
+        <h1 class="page-title">유저</h1>
+        <p class="page-sub">가입한 유저 및 역할 관리.</p>
+        <div id="usersWrap"><div class="loading">불러오는 중...</div></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- 견적 상세 모달 -->
+<div class="modal-bg" id="quoteModal" onclick="if(event.target===this)closeModal('quoteModal')">
+  <div class="modal" style="max-width:540px">
+    <button class="modal-x" onclick="closeModal('quoteModal')">✕</button>
+    <h3 class="modal-title" id="quoteMTitle">견적 상세</h3>
+    <div id="quoteModalBody"></div>
+    <div class="modal-actions" id="quoteModalActions"></div>
+  </div>
+</div>
+
+<!-- 공급사 상세 모달 -->
+<div class="modal-bg" id="suppModal" onclick="if(event.target===this)closeModal('suppModal')">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal('suppModal')">✕</button>
+    <h3 class="modal-title" id="suppMTitle">공급사 상세</h3>
+    <div id="suppModalBody"></div>
+    <div class="modal-actions" id="suppModalActions"></div>
+  </div>
+</div>
+
+<script>
+const SB_URL='https://uduqkekvtflcckjmhnfm.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkdXFrZWt2dGZsY2Nram1obmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MDQyMzUsImV4cCI6MjA4Njk4MDIzNX0.5h1iUUEGU1Kvo1uJQjHtsrlfoFfl5lFSY_le8_5b42A';
+var _sb,curUser;
+var allQuotes=[],allSuppliers=[],allProducts=[];
+(function(){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=function(){_sb=supabase.createClient(SB_URL,SB_KEY);_sb.auth.getSession().then(function(r){var sess=r.data.session;if(sess)initDash(sess.user);else showAuth();});_sb.auth.onAuthStateChange(function(e,sess){if(sess)initDash(sess.user);else showAuth();});};document.head.appendChild(s);})();
+
+function fmt(n){return(n||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function fmtDate(d){var dt=new Date(d);return dt.getFullYear()+'.'+(dt.getMonth()+1)+'.'+dt.getDate();}
+function showAuth(){document.getElementById('authScreen').style.display='';document.getElementById('mainDash').style.display='none';}
+function doLogin(){var em=document.getElementById('loginEmail').value.trim(),pw=document.getElementById('loginPw').value;if(!em||!pw){sm('loginMsg','이메일과 비밀번호를 입력하세요.');return;}document.getElementById('loginBtn').textContent='...';_sb.auth.signInWithPassword({email:em,password:pw}).then(function(r){document.getElementById('loginBtn').textContent='로그인';if(r.error)sm('loginMsg',r.error.message==='Invalid login credentials'?'이메일/비밀번호가 올바르지 않습니다.':r.error.message);});}
+function doLogout(){if(_sb)_sb.auth.signOut();}
+function sm(id,txt){var el=document.getElementById(id);if(el){el.textContent=txt;}}
+function closeModal(id){document.getElementById(id).classList.remove('on');}
+
+async function initDash(user){
+  curUser=user;
+  var role=(user.user_metadata&&user.user_metadata.role)||'buyer';
+  // profiles 테이블 확인
+  var {data:prof}=await _sb.from('profiles').select('role').eq('id',user.id).maybeSingle();
+  var actualRole=(prof&&prof.role)||role;
+  if(actualRole!=='admin'){
+    document.getElementById('authScreen').style.display='';
+    document.getElementById('mainDash').style.display='none';
+    sm('loginMsg','관리자 계정이 아닙니다. (현재 역할: '+actualRole+')');
+    _sb.auth.signOut();
+    return;
+  }
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('mainDash').style.display='';
+  document.getElementById('userEmail').textContent=user.email||'';
+  var now=new Date();
+  document.getElementById('todayDate').textContent=now.getFullYear()+'년 '+(now.getMonth()+1)+'월 '+now.getDate()+'일 기준 플랫폼 현황';
+  loadOverview();
+}
+
+async function loadOverview(){
+  var [{data:quotes},{data:suppliers},{data:products}]=await Promise.all([
+    _sb.from('quotes').select('*').order('created_at',{ascending:false}),
+    _sb.from('suppliers').select('*'),
+    _sb.from('products').select('*')
+  ]);
+  allQuotes=quotes||[];allSuppliers=suppliers||[];allProducts=products||[];
+
+  var now=new Date();
+  var monthly=allQuotes.filter(function(q){var d=new Date(q.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  var monthlyAmt=monthly.reduce(function(s,q){return s+(q.total_amount||0);},0);
+  var pending=allSuppliers.filter(function(s){return s.status==='pending';});
+
+  document.getElementById('ovQuotes').textContent=allQuotes.length;
+  document.getElementById('ovMonthly').textContent=monthly.length;
+  document.getElementById('ovSuppliers').textContent=allSuppliers.filter(function(s){return s.status==='approved';}).length;
+  document.getElementById('ovPending').textContent=pending.length;
+  document.getElementById('ovProds').textContent=allProducts.length;
+  document.getElementById('ovRevenue').textContent=monthlyAmt>=10000?(Math.floor(monthlyAmt/10000)+'만원'):fmt(monthlyAmt)+'원';
+
+  // 최근 견적 5건
+  var sl={pending:'접수완료',draft:'임시저장',confirmed:'확정',cancelled:'취소'};
+  var sb={pending:'pend',confirmed:'conf',cancelled:'canc',draft:'draft'};
+  var recentRows=allQuotes.slice(0,5).map(function(q){
+    var st=q.status||'draft';
+    return '<tr><td>'+fmtDate(q.created_at)+'</td><td>'+(q.event_type||'-')+'</td><td>'+(q.pax||'-')+'명</td><td>'+fmt(q.total_amount||0)+'원</td><td><span class="pill pill-'+(sb[st]||'draft')+'">'+((sl[st])||st)+'</span></td><td><button class="btn lgt sm" onclick="showQuoteDetail(\''+q.id+'\')">상세</button></td></tr>';
+  }).join('');
+  document.getElementById('recentQuotes').innerHTML=recentRows?'<div class="tbl-wrap"><table><thead><tr><th>날짜</th><th>행사유형</th><th>인원</th><th>금액</th><th>상태</th><th></th></tr></thead><tbody>'+recentRows+'</tbody></table></div>':'<div class="empty"><div class="empty-ico">📋</div><div class="empty-t">견적이 없습니다.</div></div>';
+
+  // 공급사 필터 옵션 채우기
+  var suppOpts='<option value="">전체 공급사</option>'+allSuppliers.map(function(s){return '<option value="'+s.id+'">'+s.name+'</option>';}).join('');
+  document.getElementById('prodSuppFilter').innerHTML=suppOpts;
+}
+
+function goPanel(name){
+  document.querySelectorAll('.sidebar-item').forEach(function(b,i){b.classList.toggle('on',['Overview','Quotes','Suppliers','Products','Users'][i]===name);});
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+  document.getElementById('panel'+name).classList.add('on');
+  if(name==='Quotes')loadQuotes();
+  if(name==='Suppliers')loadSuppliers();
+  if(name==='Products')loadProducts();
+  if(name==='Users')loadUsers();
+}
+
+// ============ QUOTES ============
+async function loadQuotes(){
+  var statusF=document.getElementById('quoteStatusFilter').value;
+  var searchF=(document.getElementById('quoteSearch').value||'').toLowerCase();
+  var filtered=allQuotes.filter(function(q){
+    if(statusF&&q.status!==statusF)return false;
+    if(searchF&&!(q.event_type||'').toLowerCase().includes(searchF)&&!(q.description||'').toLowerCase().includes(searchF))return false;
+    return true;
+  });
+  if(!filtered.length){document.getElementById('quotesTableWrap').innerHTML='<div class="empty"><div class="empty-ico">📋</div><div class="empty-t">해당 조건의 견적이 없습니다.</div></div>';return;}
+  var sl={pending:'접수완료',draft:'임시저장',confirmed:'확정',cancelled:'취소'};
+  var sb={pending:'pend',confirmed:'conf',cancelled:'canc',draft:'draft'};
+  var rows=filtered.map(function(q){
+    var st=q.status||'draft';var items=q.items||[];
+    return '<tr><td>'+fmtDate(q.created_at)+'</td><td>'+(q.event_type||'-')+'</td><td>'+(q.pax||'-')+'명</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+items.map(function(i){return i.name;}).join(', ')+'</td><td>'+fmt(q.total_amount||0)+'원</td><td><span class="pill pill-'+(sb[st]||'draft')+'">'+((sl[st])||st)+'</span></td><td><button class="btn lgt sm" onclick="showQuoteDetail(\''+q.id+'\')">상세</button></td></tr>';
+  }).join('');
+  document.getElementById('quotesTableWrap').innerHTML='<div class="tbl-wrap"><table><thead><tr><th>날짜</th><th>행사유형</th><th>인원</th><th>구성품목</th><th>금액</th><th>상태</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function showQuoteDetail(id){
+  var q=allQuotes.find(function(x){return x.id===id;});if(!q)return;
+  var sl={pending:'접수완료',draft:'임시저장',confirmed:'확정',cancelled:'취소'};
+  var sb={pending:'pend',confirmed:'conf',cancelled:'canc',draft:'draft'};
+  var items=q.items||[];
+  var itemsHtml=items.map(function(it){return '<div class="q-detail-row"><span>'+it.name+' × '+it.quantity+'</span><span>'+fmt(it.total||0)+'원</span></div>';}).join('');
+  var vat=Math.round((q.total_amount||0)*0.1);
+  var body='<div style="margin-bottom:14px"><span class="pill pill-'+(sb[q.status||'draft'])+'">'+((sl[q.status||'draft'])||q.status)+'</span></div>';
+  if(q.event_type)body+='<div style="font-size:15px;font-weight:700;margin-bottom:14px">'+q.event_type+'</div>';
+  body+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;font-size:12px;color:var(--gray)"><div>📅 날짜: '+(q.event_date||'-')+'</div><div>👥 인원: '+(q.pax||'-')+'명</div><div>📍 장소: '+(q.location||'-')+'</div><div>🗓️ 접수: '+fmtDate(q.created_at)+'</div></div>';
+  if(q.description)body+='<div style="background:var(--bg);padding:10px 12px;border-radius:8px;font-size:12px;color:var(--gray);margin-bottom:14px">'+q.description+'</div>';
+  body+='<div style="margin-bottom:12px">'+itemsHtml+'</div>';
+  body+='<div class="q-detail-row"><span>소계</span><span>'+fmt(q.total_amount||0)+'원</span></div>';
+  body+='<div class="q-detail-row"><span>부가세 (10%)</span><span>'+fmt(vat)+'원</span></div>';
+  body+='<div class="q-detail-row"><span>총 합계</span><span>'+fmt((q.total_amount||0)+vat)+'원</span></div>';
+  document.getElementById('quoteMTitle').textContent='견적 #'+id.slice(-6).toUpperCase();
+  document.getElementById('quoteModalBody').innerHTML=body;
+  document.getElementById('quoteModalActions').innerHTML=
+    '<button class="btn danger-s sm" onclick="changeQuoteStatus(\''+id+'\',\'cancelled\')">취소 처리</button>'+
+    '<button class="btn success-s sm" onclick="changeQuoteStatus(\''+id+'\',\'confirmed\')">확정 처리</button>';
+  document.getElementById('quoteModal').classList.add('on');
+}
+
+async function changeQuoteStatus(id,status){
+  await _sb.from('quotes').update({status:status}).eq('id',id);
+  var q=allQuotes.find(function(x){return x.id===id;});if(q)q.status=status;
+  closeModal('quoteModal');loadQuotes();
+}
+
+// ============ SUPPLIERS ============
+async function loadSuppliers(){
+  var statusF=document.getElementById('suppStatusFilter').value;
+  var filtered=allSuppliers.filter(function(s){return !statusF||s.status===statusF;});
+  if(!filtered.length){document.getElementById('suppTableWrap').innerHTML='<div class="empty"><div class="empty-ico">🏢</div><div class="empty-t">공급사가 없습니다.</div></div>';return;}
+  var sl={pending:'심사 대기',approved:'승인',rejected:'거절'};
+  var sb={pending:'pend',approved:'appr',rejected:'rej'};
+  var catL={goods:'굿즈',catering:'케이터링',decoration:'데코',all:'복합'};
+  var rows=filtered.map(function(s){
+    var prodCnt=allProducts.filter(function(p){return p.supplier_id===s.id;}).length;
+    return '<tr><td><strong>'+(s.name||'-')+'</strong></td><td><span class="pill pill-cat">'+(catL[s.category]||s.category||'-')+'</span></td><td>'+(s.contact_email||'-')+'</td><td>'+prodCnt+'개</td><td>'+fmtDate(s.created_at)+'</td><td><span class="pill pill-'+(sb[s.status]||'')+'">'+((sl[s.status])||s.status)+'</span></td><td><button class="btn lgt sm" onclick="showSuppDetail(\''+s.id+'\')">상세</button></td></tr>';
+  }).join('');
+  document.getElementById('suppTableWrap').innerHTML='<div class="tbl-wrap"><table><thead><tr><th>공급사명</th><th>카테고리</th><th>이메일</th><th>상품수</th><th>신청일</th><th>상태</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function showSuppDetail(id){
+  var s=allSuppliers.find(function(x){return x.id===id;});if(!s)return;
+  var catL={goods:'굿즈',catering:'케이터링',decoration:'데코',all:'복합'};
+  var sl={pending:'심사 대기',approved:'승인',rejected:'거절'};
+  var sb={pending:'pend',approved:'appr',rejected:'rej'};
+  var myProds=allProducts.filter(function(p){return p.supplier_id===id;});
+  var body='<div style="margin-bottom:12px"><span class="pill pill-'+(sb[s.status]||'')+'">'+((sl[s.status])||s.status)+'</span></div>';
+  body+='<div style="display:grid;gap:6px;font-size:13px;margin-bottom:14px">';
+  body+='<div><strong>카테고리:</strong> '+(catL[s.category]||s.category||'-')+'</div>';
+  body+='<div><strong>이메일:</strong> '+(s.contact_email||'-')+'</div>';
+  body+='<div><strong>연락처:</strong> '+(s.phone||'-')+'</div>';
+  body+='<div><strong>신청일:</strong> '+fmtDate(s.created_at)+'</div>';
+  body+='</div>';
+  if(s.description)body+='<div style="background:var(--bg);padding:10px 12px;border-radius:8px;font-size:12px;color:var(--gray);margin-bottom:14px">'+s.description+'</div>';
+  if(myProds.length){body+='<div style="font-size:12px;font-weight:700;margin-bottom:6px">등록 상품 ('+myProds.length+'개)</div>';body+='<div style="font-size:12px;color:var(--gray);line-height:2">'+myProds.map(function(p){return '• '+p.name+' — '+fmt(p.unit_price||p.price||0)+'원';}).join('<br>')+'</div>';}
+  document.getElementById('suppMTitle').textContent=s.name||'공급사 상세';
+  document.getElementById('suppModalBody').innerHTML=body;
+  var actions='';
+  if(s.status==='pending'){actions='<button class="btn danger-s sm" onclick="changeSuppStatus(\''+id+'\',\'rejected\')">거절</button><button class="btn success-s sm" onclick="changeSuppStatus(\''+id+'\',\'approved\')">승인</button>';}
+  else if(s.status==='approved'){actions='<button class="btn danger-s sm" onclick="changeSuppStatus(\''+id+'\',\'rejected\')">승인 취소</button>';}
+  else{actions='<button class="btn success-s sm" onclick="changeSuppStatus(\''+id+'\',\'approved\')">승인</button>';}
+  document.getElementById('suppModalActions').innerHTML=actions;
+  document.getElementById('suppModal').classList.add('on');
+}
+
+async function changeSuppStatus(id,status){
+  await _sb.from('suppliers').update({status:status}).eq('id',id);
+  var s=allSuppliers.find(function(x){return x.id===id;});if(s)s.status=status;
+  closeModal('suppModal');loadSuppliers();
+  // 개요도 업데이트
+  var pending=allSuppliers.filter(function(s){return s.status==='pending';});
+  document.getElementById('ovPending').textContent=pending.length;
+  document.getElementById('ovSuppliers').textContent=allSuppliers.filter(function(s){return s.status==='approved';}).length;
+}
+
+// ============ PRODUCTS ============
+async function loadProducts(){
+  var catF=document.getElementById('prodCatFilter').value;
+  var tierF=document.getElementById('prodTierFilter').value;
+  var suppF=document.getElementById('prodSuppFilter').value;
+  var filtered=allProducts.filter(function(p){
+    if(catF&&p.category!==catF)return false;
+    if(tierF&&p.tier!==tierF)return false;
+    if(suppF&&p.supplier_id.toString()!==suppF)return false;
+    return true;
+  });
+  if(!filtered.length){document.getElementById('prodTableWrap').innerHTML='<div class="empty"><div class="empty-ico">📦</div><div class="empty-t">상품이 없습니다.</div></div>';return;}
+  var tl={basic:'Basic',diff:'Differentiated',impact:'Impact'},cl={goods:'굿즈',catering:'케이터링',deco:'데코',decoration:'데코'};
+  var rows=filtered.map(function(p){
+    var supp=allSuppliers.find(function(s){return s.id===p.supplier_id;});
+    return '<tr><td class="em-col">'+(p.emoji||'📦')+'</td><td><strong>'+p.name+'</strong></td><td><span class="pill pill-cat">'+(cl[p.category]||p.category)+'</span></td><td><span class="pill pill-'+(p.tier||'basic')+'">'+(tl[p.tier]||p.tier)+'</span></td><td>'+fmt(p.unit_price||p.price||0)+'원</td><td>'+(supp?supp.name:'-')+'</td><td>'+(p.is_available?'<span class="pill pill-on">판매 중</span>':'<span class="pill pill-off">준비 중'+(p.eta?' ('+p.eta+')')+'</span>')+'</td><td><button class="btn danger-s sm" onclick="deleteProd('+p.id+',\''+p.name.replace(/'/g,'')+'\')">삭제</button></td></tr>';
+  }).join('');
+  document.getElementById('prodTableWrap').innerHTML='<div class="tbl-wrap"><table><thead><tr><th></th><th>상품명</th><th>카테고리</th><th>티어</th><th>가격</th><th>공급사</th><th>상태</th><th>관리</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+async function deleteProd(id,name){
+  if(!confirm('"'+name+'" 상품을 삭제할까요?'))return;
+  await _sb.from('products').delete().eq('id',id);
+  allProducts=allProducts.filter(function(p){return p.id!==id;});
+  loadProducts();
+  document.getElementById('ovProds').textContent=allProducts.length;
+}
+
+// ============ USERS ============
+async function loadUsers(){
+  var {data:profiles}=await _sb.from('profiles').select('*').order('created_at',{ascending:false});
+  if(!profiles||!profiles.length){document.getElementById('usersWrap').innerHTML='<div class="empty"><div class="empty-ico">👥</div><div class="empty-t">프로필 없음 — 가입한 유저가 없거나 profiles 테이블이 비어있습니다.</div></div>';return;}
+  var roleL={buyer:'바이어',supplier:'공급사',admin:'관리자'};
+  var rows=profiles.map(function(p){return '<tr><td style="font-size:11px;color:var(--light)">'+p.id.slice(-8)+'</td><td>'+(p.company_name||'-')+'</td><td><span class="pill '+(p.role==='admin'?'pill-impact':p.role==='supplier'?'pill-diff':'pill-on')+'">'+((roleL[p.role])||p.role)+'</span></td><td>'+fmtDate(p.created_at)+'</td><td>'+
+    (p.role!=='admin'?'<button class="btn sm" onclick="makeAdmin(\''+p.id+'\')">관리자 지정</button>':'<span style="font-size:11px;color:var(--light)">관리자</span>')+
+    '</td></tr>';}).join('');
+  document.getElementById('usersWrap').innerHTML='<div class="tbl-wrap"><table><thead><tr><th>ID (끝 8자리)</th><th>회사명</th><th>역할</th><th>가입일</th><th>관리</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+async function makeAdmin(id){
+  if(!confirm('이 유저를 관리자로 지정할까요?'))return;
+  await _sb.from('profiles').update({role:'admin'}).eq('id',id);
+  loadUsers();
+}
+</script>
+</body>
+</html>
