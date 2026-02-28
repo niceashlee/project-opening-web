@@ -454,7 +454,8 @@ async function loadProducts(){
     var catName=cl[p.category]||p.category;
     var tierName=tl[p.tier]||p.tier||'basic';
     var suppName=supp?supp.name:'-';
-    var statusHtml=isOn?'<span class="pill pill-on">판매 중</span>':'<span class="pill pill-off">준비 중'+(p.eta?' ('+p.eta+')')+'</span>';
+    var etaTxt=p.eta?' ('+p.eta+')':'';
+    var statusHtml=isOn?'<span class="pill pill-on">판매 중</span>':'<span class="pill pill-off">준비 중'+etaTxt+'</span>';
     tbody+='<tr>';
     tbody+='<td class="em-col">'+(p.emoji||'📦')+'</td>';
     tbody+='<td><strong>'+p.name+'</strong></td>';
