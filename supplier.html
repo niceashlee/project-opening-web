@@ -217,7 +217,7 @@ tr:hover td{background:rgba(245,242,235,0.5)}
 </div>
 
 <!-- 공급사 등록 모달 -->
-<div class="modal-bg on" id="regModal">
+<div class="modal-bg" id="regModal">
   <div class="modal">
     <h3 class="modal-title">🏢 공급사 정보 등록</h3>
     <div id="regMsg"></div>
@@ -237,109 +237,235 @@ tr:hover td{background:rgba(245,242,235,0.5)}
 const SB_URL='https://uduqkekvtflcckjmhnfm.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkdXFrZWt2dGZsY2Nram1obmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MDQyMzUsImV4cCI6MjA4Njk4MDIzNX0.5h1iUUEGU1Kvo1uJQjHtsrlfoFfl5lFSY_le8_5b42A';
 var _sb,curUser,suppRec,myProds=[];
-(function(){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=function(){_sb=supabase.createClient(SB_URL,SB_KEY);_sb.auth.getSession().then(function(r){var sess=r.data.session;if(sess)initDash(sess.user);else showAuth();});_sb.auth.onAuthStateChange(function(e,sess){if(sess)initDash(sess.user);else showAuth();});};document.head.appendChild(s);})();
+
+(function(){
+  var s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  s.onload=function(){
+    _sb=supabase.createClient(SB_URL,SB_KEY);
+    _sb.auth.getSession().then(function(r){
+      var sess=r.data.session;
+      if(sess) initDash(sess.user);
+      else showAuth();
+    });
+    _sb.auth.onAuthStateChange(function(e,sess){
+      if(sess) initDash(sess.user);
+      else showAuth();
+    });
+  };
+  document.head.appendChild(s);
+})();
+
 function fmt(n){return(n||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');}
-function showAuth(){document.getElementById('authScreen').style.display='';document.getElementById('mainDash').style.display='none';document.getElementById('regModal').classList.remove('on');}
-function doLogin(){var em=document.getElementById('loginEmail').value.trim(),pw=document.getElementById('loginPw').value;if(!em||!pw){sm('loginMsg','이메일과 비밀번호를 입력하세요.');return;}document.getElementById('loginBtn').textContent='...';_sb.auth.signInWithPassword({email:em,password:pw}).then(function(r){document.getElementById('loginBtn').textContent='로그인';if(r.error)sm('loginMsg',r.error.message==='Invalid login credentials'?'이메일/비밀번호가 올바르지 않습니다.':r.error.message);});}
+
+function showAuth(){
+  document.getElementById('authScreen').style.display='';
+  document.getElementById('mainDash').style.display='none';
+  document.getElementById('regModal').classList.remove('on');
+}
+
+function doLogin(){
+  var em=document.getElementById('loginEmail').value.trim();
+  var pw=document.getElementById('loginPw').value;
+  if(!em||!pw){sm('loginMsg','이메일과 비밀번호를 입력하세요.');return;}
+  document.getElementById('loginBtn').textContent='...';
+  _sb.auth.signInWithPassword({email:em,password:pw}).then(function(r){
+    document.getElementById('loginBtn').textContent='로그인';
+    if(r.error) sm('loginMsg',r.error.message==='Invalid login credentials'?'이메일/비밀번호가 올바르지 않습니다.':r.error.message);
+  });
+}
+
 function doLogout(){if(_sb)_sb.auth.signOut();}
-function sm(id,txt,type){var el=document.getElementById(id);if(el){el.textContent=txt;el.className='msg'+(type?' '+type:'');}}
+
+function sm(id,txt,type){
+  var el=document.getElementById(id);
+  if(el){el.textContent=txt;el.className='msg'+(type?' '+type:'');}
+}
 
 async function initDash(user){
   curUser=user;
   document.getElementById('authScreen').style.display='none';
   document.getElementById('mainDash').style.display='';
   document.getElementById('userEmail').textContent=user.email||'';
-  var role=(user.user_metadata&&user.user_metadata.role)||'buyer';
-  if(role!=='supplier'&&role!=='admin'){
-    document.getElementById('mainDash').innerHTML='<div style="text-align:center;padding:80px 24px"><div style="font-size:36px;margin-bottom:14px">🚫</div><h2 style="font-weight:700;margin-bottom:8px">접근 권한 없음</h2><p style="color:var(--gray);margin-bottom:16px">공급사 계정으로만 접근할 수 있습니다.</p><a href="https://projectopening.com" style="color:var(--accent);font-weight:600">← 메인으로</a></div>';
-    return;
-  }
+
+  // Check supplier record
   var {data:sup}=await _sb.from('suppliers').select('*').eq('user_id',user.id).maybeSingle();
   suppRec=sup;
-  if(!suppRec){document.getElementById('regModal').classList.add('on');return;}
+
+  if(!suppRec){
+    document.getElementById('regModal').classList.add('on');
+    return;
+  }
+
   document.getElementById('regModal').classList.remove('on');
-  var bannerMap={pending:'<div class="banner pending">⏳ 심사 중입니다. 승인 후 상품이 플랫폼에 노출됩니다.</div>',approved:'<div class="banner approved">✅ 승인 완료 — 상품이 플랫폼에 노출 중입니다.</div>',rejected:'<div class="banner rejected">❌ 승인 거절 — 관리자에게 문의하세요.</div>'};
+  var bannerMap={
+    pending:'<div class="banner pending">⏳ 심사 중입니다. 승인 후 상품이 플랫폼에 노출됩니다.</div>',
+    approved:'<div class="banner approved">✅ 승인 완료 — 상품이 플랫폼에 노출 중입니다.</div>',
+    rejected:'<div class="banner rejected">❌ 승인 거절 — 관리자에게 문의하세요.</div>'
+  };
   document.getElementById('statusBanner').innerHTML=bannerMap[suppRec.status]||'';
-  document.getElementById('dashSub').textContent=(suppRec.name||'')+'  ·  공급자 대시보드';
+  document.getElementById('dashSub').textContent=(suppRec.name||'')+' · 공급자 대시보드';
   loadProds();loadQuotes();loadProfile();
 }
 
 async function registerSupplier(){
-  var name=document.getElementById('regName').value.trim(),cat=document.getElementById('regCat').value,email=document.getElementById('regEmail').value.trim(),phone=document.getElementById('regPhone').value.trim(),desc=document.getElementById('regDesc').value.trim();
-  if(!name||!cat||!email){document.getElementById('regMsg').innerHTML='<div class="inline-msg err">이름, 카테고리, 이메일은 필수입니다.</div>';return;}
-  var btn=document.querySelector('#regModal .submit-btn');btn.textContent='신청 중...';btn.disabled=true;
+  var name=document.getElementById('regName').value.trim();
+  var cat=document.getElementById('regCat').value;
+  var email=document.getElementById('regEmail').value.trim();
+  var phone=document.getElementById('regPhone').value.trim();
+  var desc=document.getElementById('regDesc').value.trim();
+  if(!name||!cat||!email){
+    document.getElementById('regMsg').innerHTML='<div class="inline-msg err">이름, 카테고리, 이메일은 필수입니다.</div>';
+    return;
+  }
+  var btn=document.querySelector('#regModal .submit-btn');
+  btn.textContent='신청 중...';btn.disabled=true;
   var {error}=await _sb.from('suppliers').insert({user_id:curUser.id,name:name,category:cat,contact_email:email,phone:phone,description:desc,status:'pending'});
   btn.textContent='신청하기';btn.disabled=false;
-  if(error){document.getElementById('regMsg').innerHTML='<div class="inline-msg err">'+error.message+'</div>';return;}
+  if(error){
+    document.getElementById('regMsg').innerHTML='<div class="inline-msg err">'+error.message+'</div>';
+    return;
+  }
   document.getElementById('regMsg').innerHTML='<div class="inline-msg ok">신청 완료! 관리자 승인 후 대시보드가 열립니다.</div>';
   setTimeout(function(){window.location.reload();},2000);
 }
 
 function goTab(name){
-  document.querySelectorAll('.tab-btn').forEach(function(b,i){b.classList.toggle('on',['Products','Quotes','Profile'][i]===name);});
+  document.querySelectorAll('.tab-btn').forEach(function(b,i){
+    b.classList.toggle('on',['Products','Quotes','Profile'][i]===name);
+  });
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
   document.getElementById('panel'+name).classList.add('on');
 }
 
 async function loadProds(){
-  if(!suppRec){document.getElementById('prodWrap').innerHTML='<div class="empty"><div class="empty-ico">📦</div><div class="empty-t">공급사 승인 후 상품을 추가할 수 있습니다.</div></div>';return;}
-  var {data,error}=await _sb.from('products').select('*').eq("supplier_id",suppRec.id).order("created_at",{ascending:false})});
-  if(error){document.getElementById('prodWrap').innerHTML='<div class="loading">오류: '+error.message+'</div>';return;}
+  if(!suppRec){
+    document.getElementById('prodWrap').innerHTML='<div class="empty"><div class="empty-ico">📦</div><div class="empty-t">공급사 승인 후 상품을 추가할 수 있습니다.</div></div>';
+    return;
+  }
+  /* FIX 1: removed extra }) at the end */
+  var {data,error}=await _sb.from('products').select('*').eq("supplier_id",suppRec.id).order("created_at",{ascending:false});
+  if(error){
+    document.getElementById('prodWrap').innerHTML='<div class="loading">오류: '+error.message+'</div>';
+    return;
+  }
   myProds=data||[];
   document.getElementById('sTotal').textContent=myProds.length;
   document.getElementById('sActive').textContent=myProds.filter(function(p){return p.is_active!==undefined?p.is_active:p.is_available;}).length;
   document.getElementById('sEta').textContent=myProds.filter(function(p){return !p.is_available;}).length;
-  if(!myProds.length){document.getElementById('prodWrap').innerHTML='<div class="empty"><div class="empty-ico">📦</div><div class="empty-t">등록된 상품이 없습니다.</div><div class="empty-s">상품 추가 버튼을 눌러 시작하세요.</div></div>';return;}
-  var tl={basic:'Basic',diff:'Differentiated',impact:'Impact'},cl={goods:'굿즈',catering:'케이터링',deco:'데코',decoration:'데코'};
-  var rows=myProds.map(function(p){return '<tr><td class="em-col">'+(p.emoji||'📦')+'</td><td><strong>'+p.name+'</strong></td><td><span class="pill pill-cat">'+(cl[p.category]||p.category)+'</span></td><td><span class="pill pill-'+(p.tier||'basic')+'">'+(tl[p.tier]||p.tier)+'</span></td><td>'+fmt(p.unit_price||p.price||0)+'원</td><td>'+(p.is_available?'<span class="pill pill-on">판매 중</span>':'<span class="pill pill-off">준비 중'+(p.eta?' ('+p.eta+')')+'</span>')+'</td><td><button class="btn sm" style="margin-right:5px" onclick="openProdModal('+p.id+')">수정</button><button class="btn sm danger-s" onclick="delProd('+p.id+',\''+p.name.replace(/'/g,'')+'\')">삭제</button></td></tr>';}).join('');
+  if(!myProds.length){
+    document.getElementById('prodWrap').innerHTML='<div class="empty"><div class="empty-ico">📦</div><div class="empty-t">등록된 상품이 없습니다.</div><div class="empty-s">상품 추가 버튼을 눌러 시작하세요.</div></div>';
+    return;
+  }
+  var tl={basic:'Basic',diff:'Differentiated',impact:'Impact'};
+  var cl={goods:'굿즈',catering:'케이터링',deco:'데코',decoration:'데코'};
+  /* FIX 2: added missing :'' in ternary for p.eta */
+  var rows=myProds.map(function(p){
+    return '<tr><td class="em-col">'+(p.emoji||'📦')+'</td><td><strong>'+p.name+'</strong></td><td><span class="pill pill-cat">'+(cl[p.category]||p.category)+'</span></td><td><span class="pill pill-'+(p.tier||'basic')+'">'+(tl[p.tier]||p.tier)+'</span></td><td>'+fmt(p.unit_price||p.price||0)+'원</td><td>'+(p.is_available?'<span class="pill pill-on">판매 중</span>':'<span class="pill pill-off">준비 중'+(p.eta?' ('+p.eta+')':'')+'</span>')+'</td><td><button class="btn sm" style="margin-right:5px" onclick="openProdModal('+p.id+')">수정</button><button class="btn sm danger-s" onclick="delProd('+p.id+',\''+p.name.replace(/'/g,'')+'\')">삭제</button></td></tr>';
+  }).join('');
   document.getElementById('prodWrap').innerHTML='<div class="tbl-wrap"><table><thead><tr><th></th><th>상품명</th><th>카테고리</th><th>티어</th><th>가격</th><th>상태</th><th>관리</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
 function openProdModal(id){
   document.getElementById('prodModalMsg').innerHTML='';
   document.getElementById('editProdId').value=id||'';
-  if(id){var p=myProds.find(function(x){return x.id===id;});if(p){document.getElementById('prodModalTitle').textContent='상품 수정';document.getElementById('pName').value=p.name||'';document.getElementById('pCat').value=p.category||'';document.getElementById('pTier').value=p.tier||'';document.getElementById('pPrice').value=p.price||'';document.getElementById('pEmoji').value=p.emoji||'';document.getElementById('pAvail').value=p.is_active!==undefined?(p.is_active?'true':'false'):(p.is_available?'true':'false');document.getElementById('pEta').value=p.eta||'';}}
-  else{document.getElementById('prodModalTitle').textContent='상품 추가';['pName','pPrice','pEmoji','pEta'].forEach(function(i){document.getElementById(i).value='';});document.getElementById('pCat').value='';document.getElementById('pTier').value='';document.getElementById('pAvail').value='true';}
+  if(id){
+    var p=myProds.find(function(x){return x.id===id;});
+    if(p){
+      document.getElementById('prodModalTitle').textContent='상품 수정';
+      document.getElementById('pName').value=p.name||'';
+      document.getElementById('pCat').value=p.category||'';
+      document.getElementById('pTier').value=p.tier||'';
+      document.getElementById('pPrice').value=p.price||'';
+      document.getElementById('pEmoji').value=p.emoji||'';
+      document.getElementById('pAvail').value=p.is_active!==undefined?(p.is_active?'true':'false'):(p.is_available?'true':'false');
+      document.getElementById('pEta').value=p.eta||'';
+    }
+  } else {
+    document.getElementById('prodModalTitle').textContent='상품 추가';
+    ['pName','pPrice','pEmoji','pEta'].forEach(function(i){document.getElementById(i).value='';});
+    document.getElementById('pCat').value='';
+    document.getElementById('pTier').value='';
+    document.getElementById('pAvail').value='true';
+  }
   document.getElementById('prodModal').classList.add('on');
 }
+
 function closeProdModal(){document.getElementById('prodModal').classList.remove('on');}
 
 async function saveProd(){
-  var id=document.getElementById('editProdId').value,name=document.getElementById('pName').value.trim(),cat=document.getElementById('pCat').value,tier=document.getElementById('pTier').value,price=parseInt(document.getElementById('pPrice').value)||0,emoji=document.getElementById('pEmoji').value.trim()||'📦',avail=document.getElementById('pAvail').value==='true',eta=document.getElementById('pEta').value.trim();
-  if(!name||!cat||!tier||!price){document.getElementById('prodModalMsg').innerHTML='<div class="inline-msg err">필수 항목을 입력하세요.</div>';return;}
-  if(!suppRec){document.getElementById('prodModalMsg').innerHTML='<div class="inline-msg err">공급사 정보가 없습니다.</div>';return;}
-  var btn=document.getElementById('prodSaveBtn');btn.textContent='...';btn.disabled=true;
+  var id=document.getElementById('editProdId').value;
+  var name=document.getElementById('pName').value.trim();
+  var cat=document.getElementById('pCat').value;
+  var tier=document.getElementById('pTier').value;
+  var price=parseInt(document.getElementById('pPrice').value)||0;
+  var emoji=document.getElementById('pEmoji').value.trim()||'📦';
+  var avail=document.getElementById('pAvail').value==='true';
+  var eta=document.getElementById('pEta').value.trim();
+  if(!name||!cat||!tier||!price){
+    document.getElementById('prodModalMsg').innerHTML='<div class="inline-msg err">필수 항목을 입력하세요.</div>';
+    return;
+  }
+  if(!suppRec){
+    document.getElementById('prodModalMsg').innerHTML='<div class="inline-msg err">공급사 정보가 없습니다.</div>';
+    return;
+  }
+  var btn=document.getElementById('prodSaveBtn');
+  btn.textContent='...';btn.disabled=true;
   var payload={name:name,category:cat,tier:tier,unit_price:price,emoji:emoji,is_active:avail,eta:eta||null,supplier_id:suppRec.id};
   var res=id?await _sb.from('products').update(payload).eq('id',id):await _sb.from('products').insert(payload);
   btn.textContent='저장';btn.disabled=false;
-  if(res.error){document.getElementById('prodModalMsg').innerHTML='<div class="inline-msg err">'+res.error.message+'</div>';return;}
+  if(res.error){
+    document.getElementById('prodModalMsg').innerHTML='<div class="inline-msg err">'+res.error.message+'</div>';
+    return;
+  }
   closeProdModal();loadProds();
 }
 
 async function delProd(id,name){
-  if(!confirm('"'+name+'" 상품을 삭제할까요?'))return;
+  if(!confirm('"'+name+'" 상품을 삭제할까요?')) return;
   await _sb.from('products').delete().eq('id',id);
   loadProds();
 }
 
 async function loadQuotes(){
   document.getElementById('sQuotes').textContent='...';
-  if(!suppRec)return;
+  if(!suppRec) return;
   var {data:myProdRows}=await _sb.from('products').select('name').eq('supplier_id',suppRec.id);
   var myNames=(myProdRows||[]).map(function(p){return p.name;});
   var {data:quotes}=await _sb.from('quotes').select('*').order('created_at',{ascending:false});
-  if(!quotes){document.getElementById('sQuotes').textContent='0';document.getElementById('quotesWrap').innerHTML='<div class="empty"><div class="empty-ico">📋</div><div class="empty-t">견적 내역이 없습니다.</div></div>';return;}
-  var myQ=(quotes||[]).filter(function(q){var items=q.items||[];return items.some(function(it){return myNames.indexOf(it.name)!==-1;});});
+  if(!quotes){
+    document.getElementById('sQuotes').textContent='0';
+    document.getElementById('quotesWrap').innerHTML='<div class="empty"><div class="empty-ico">📋</div><div class="empty-t">견적 내역이 없습니다.</div></div>';
+    return;
+  }
+  var myQ=(quotes||[]).filter(function(q){
+    var items=q.items||[];
+    return items.some(function(it){return myNames.indexOf(it.name)!==-1;});
+  });
   var now=new Date();
-  document.getElementById('sQuotes').textContent=myQ.filter(function(q){var d=new Date(q.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).length;
-  if(!myQ.length){document.getElementById('quotesWrap').innerHTML='<div class="empty"><div class="empty-ico">📋</div><div class="empty-t">내 상품이 포함된 견적이 없습니다.</div></div>';return;}
-  var sl={pending:'접수완료',draft:'임시저장',confirmed:'확정',cancelled:'취소'},sb={pending:'pend',confirmed:'conf',cancelled:'canc',draft:'pill-off'};
+  document.getElementById('sQuotes').textContent=myQ.filter(function(q){
+    var d=new Date(q.created_at);
+    return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  }).length;
+  if(!myQ.length){
+    document.getElementById('quotesWrap').innerHTML='<div class="empty"><div class="empty-ico">📋</div><div class="empty-t">내 상품이 포함된 견적이 없습니다.</div></div>';
+    return;
+  }
+  var sl={pending:'접수완료',draft:'임시저장',confirmed:'확정',cancelled:'취소'};
+  var sb={pending:'pend',confirmed:'conf',cancelled:'canc',draft:'pill-off'};
   var h='';
   myQ.forEach(function(q){
-    var dt=new Date(q.created_at);var ds=dt.getFullYear()+'.'+(dt.getMonth()+1)+'.'+dt.getDate();
-    var items=q.items||[];var mi=items.filter(function(it){return myNames.indexOf(it.name)!==-1;});var mt=mi.reduce(function(s,it){return s+(it.total||0);},0);var st=q.status||'draft';
+    var dt=new Date(q.created_at);
+    var ds=dt.getFullYear()+'.'+(dt.getMonth()+1)+'.'+dt.getDate();
+    var items=q.items||[];
+    var mi=items.filter(function(it){return myNames.indexOf(it.name)!==-1;});
+    var mt=mi.reduce(function(s,it){return s+(it.total||0);},0);
+    var st=q.status||'draft';
     h+='<div class="q-card"><div class="q-hd"><div><span class="pill pill-'+(sb[st]||'')+'">'+((sl[st])||st)+'</span>'+(q.event_type?' <strong style="font-size:13px;margin-left:8px">'+q.event_type+'</strong>':'')+'</div><span style="font-size:11px;color:var(--light)">'+ds+'</span></div>';
-    h+='<div class="q-items">';mi.forEach(function(it){h+='• '+it.name+' × '+it.quantity+'  —  '+fmt(it.total)+'원<br>';});h+='</div>';
+    h+='<div class="q-items">';
+    mi.forEach(function(it){h+='• '+it.name+' × '+it.quantity+'  —  '+fmt(it.total)+'원<br>';});
+    h+='</div>';
     h+='<div class="q-amt">소계: '+fmt(mt)+'원</div>'+(q.pax?'<div style="font-size:11px;color:var(--light);margin-top:4px">인원: '+q.pax+'명</div>':'')+'</div>';
   });
   document.getElementById('quotesWrap').innerHTML=h;
@@ -351,10 +477,20 @@ async function loadProfile(){
 }
 
 async function saveProfile(){
-  var id=document.getElementById('profSuppId').value;if(!id)return;
-  var payload={name:document.getElementById('profName').value.trim(),category:document.getElementById('profCat').value,contact_email:document.getElementById('profEmail').value.trim(),phone:document.getElementById('profPhone').value.trim(),description:document.getElementById('profDesc').value.trim()};
+  var id=document.getElementById('profSuppId').value;
+  if(!id) return;
+  var payload={
+    name:document.getElementById('profName').value.trim(),
+    category:document.getElementById('profCat').value,
+    contact_email:document.getElementById('profEmail').value.trim(),
+    phone:document.getElementById('profPhone').value.trim(),
+    description:document.getElementById('profDesc').value.trim()
+  };
   var {error}=await _sb.from('suppliers').update(payload).eq('id',id);
-  if(error){document.getElementById('profMsg').innerHTML='<div class="inline-msg err">'+error.message+'</div>';return;}
+  if(error){
+    document.getElementById('profMsg').innerHTML='<div class="inline-msg err">'+error.message+'</div>';
+    return;
+  }
   document.getElementById('profMsg').innerHTML='<div class="inline-msg ok">저장되었습니다.</div>';
   Object.assign(suppRec,payload);
   setTimeout(function(){document.getElementById('profMsg').innerHTML='';},3000);
