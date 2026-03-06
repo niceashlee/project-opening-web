@@ -175,6 +175,15 @@ body{font-family:'Noto Sans KR','Archivo',sans-serif;background:var(--cream);col
 .modal-content{background:var(--card);border-radius:24px;padding:32px;max-width:640px;width:90%;max-height:80vh;overflow-y:auto;position:relative}
 .modal-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;border:none;background:var(--bg-input);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
 .modal-close:hover{background:var(--warning);color:#fff}
+.prod-detail-img{width:100%;max-height:280px;object-fit:cover;border-radius:14px;margin-bottom:16px;background:var(--bg-input)}
+.prod-detail-info{margin-bottom:14px}
+.prod-detail-name{font-size:20px;font-weight:800;margin-bottom:4px}
+.prod-detail-price{font-size:16px;font-weight:700;color:var(--accent);margin-bottom:8px}
+.prod-detail-desc{font-size:14px;color:var(--gray);line-height:1.8}
+.prod-detail-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.prod-detail-meta .pill{font-size:11px;padding:4px 12px;border-radius:50px}
+.tc-img{width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--bg-input)}
+.tc-img-placeholder{width:44px;height:44px;border-radius:8px;flex-shrink:0;background:var(--bg-input);display:flex;align-items:center;justify-content:center;font-size:20px}
 .pr-sec{margin-bottom:20px}
 .pr-sec h4{font-size:15px;font-weight:700;color:var(--accent);margin-bottom:6px}
 .pr-sec p{font-size:14px;color:var(--gray);line-height:1.8}
@@ -350,6 +359,13 @@ body{font-family:'Noto Sans KR','Archivo',sans-serif;background:var(--cream);col
 </div>
 </div>
 
+<div class="modal-overlay" id="prodDetailModal">
+<div class="modal-content" style="max-width:480px">
+<button class="modal-close" onclick="closeProdDetail()">&times;</button>
+<div id="prodDetailBody"></div>
+</div>
+</div>
+
 <div class="chatm" id="chatM">
 <div class="ch-hd"><h4 id="chTitle">공급자</h4><button class="ch-x" onclick="closeChat()">&times;</button></div>
 <div class="ch-body" id="chBody"><div class="ch-msg bot">안녕하세요! 문의사항을 말씀해 주세요.</div></div>
@@ -410,9 +426,9 @@ window.loadItemsFromDB=function(sb,callback){
       var tier=p.tier;var cat=p.category==='decoration'?'deco':p.category;
       var price=p.unit_price||p.price||0;
       var avail=p.is_active!==undefined?p.is_active:(p.is_available!==undefined?p.is_available:true);
-      if(ITEMS[tier]&&ITEMS[tier][cat]){ITEMS[tier][cat].push({n:p.name,p:price,em:p.emoji||'📦',ok:avail,eta:p.eta||null});}
+      if(ITEMS[tier]&&ITEMS[tier][cat]){ITEMS[tier][cat].push({n:p.name,p:price,em:p.emoji||'📦',ok:avail,eta:p.eta||null,img:p.image_url||'',desc:p.description||''});}
     });
-    console.log('[PO] products loaded:',JSON.stringify(Object.keys(seen).length),'unique from',res.data.length,'rows');
+    console.log('[PO] products loaded:',Object.keys(seen).length,'unique from',res.data.length,'rows');
     window.ITEMS_LOADED=true;window._ITEMS_LOADING=false;if(callback)callback();
   }).catch(function(){ITEMS=JSON.parse(JSON.stringify(ITEMS_FALLBACK));window.ITEMS_LOADED=true;window._ITEMS_LOADING=false;if(callback)callback();});
 }
@@ -495,9 +511,10 @@ function renderP2(){
         var inC=cart.some(function(c){return c.key===key;});
         var itemTotal=it.ok?(it.p*(cat==="goods"?pax:1)):0;
         if(inC) tierTotal+=itemTotal;
-        h+="<div class='tc-item"+(inC?" picked":"")+(!it.ok?" na":"")+"' data-key='"+key+"' data-tier='"+tier+"' data-cat='"+cat+"' data-n='"+it.n+"' data-p='"+it.p+"' data-ok='"+it.ok+"'>";
+        var imgHtml=it.img?'<img class="tc-img" src="'+it.img+'" alt="'+it.n+'" onerror="this.outerHTML=\'<div class=tc-img-placeholder>'+it.em+'</div>\'">':'<div class="tc-img-placeholder">'+it.em+'</div>';
+        h+="<div class='tc-item"+(inC?" picked":"")+(!it.ok?" na":"")+"' data-key='"+key+"' data-tier='"+tier+"' data-cat='"+cat+"' data-n='"+it.n+"' data-p='"+it.p+"' data-ok='"+it.ok+"' data-img='"+(it.img||'')+"' data-desc='"+(it.desc||'').replace(/'/g,'&#39;')+"' data-em='"+it.em+"'>";
         h+="<div class='tc-check'></div>";
-        h+="<div class='tc-em'>"+it.em+"</div>";
+        h+=imgHtml;
         h+="<div class='tc-info'><div class='tc-name'>"+it.n+"</div><div class='tc-price'>"+fmt(it.p)+"원"+(cat==="goods"?" /개":" /건")+"</div>";
         if(!it.ok) h+="<div class='tc-na'>준비 중"+(it.eta?" ("+it.eta+")":"")+"</div>";
         h+="</div></div>";
@@ -529,7 +546,37 @@ function renderP2(){
       renderP2();
     });
   });
+  // 상품명 클릭 시 상세보기
+  document.querySelectorAll(".tc-name").forEach(function(el){
+    el.style.cursor="pointer";
+    el.style.textDecoration="underline";
+    el.style.textDecorationColor="rgba(216,101,200,0.3)";
+    el.addEventListener("click",function(e){
+      e.stopPropagation();
+      var item=this.closest(".tc-item");
+      if(!item)return;
+      showProdDetail(item.dataset.n,item.dataset.p,item.dataset.cat,item.dataset.tier,item.dataset.img,item.dataset.desc,item.dataset.em);
+    });
+  });
 }
+
+window.showProdDetail=function(name,price,cat,tier,img,desc,em){
+  var tl={basic:"📋 Basic",diff:"⭐ Differentiated",impact:"💎 Impact"};
+  var cl={goods:"굿즈",catering:"케이터링",deco:"데코레이션"};
+  var h="";
+  if(img){h+='<img class="prod-detail-img" src="'+img+'" alt="'+name+'" onerror="this.style.display=\'none\'">';}
+  h+='<div class="prod-detail-info">';
+  h+='<div class="prod-detail-meta"><span class="pill" style="background:rgba(216,101,200,0.1);color:var(--accent)">'+(tl[tier]||tier)+'</span><span class="pill" style="background:rgba(0,0,0,0.05);color:var(--gray)">'+(cl[cat]||cat)+'</span></div>';
+  h+='<div class="prod-detail-name">'+name+'</div>';
+  h+='<div class="prod-detail-price">'+fmt(parseInt(price))+'원'+(cat==="goods"?" /개":" /건")+'</div>';
+  if(desc){h+='<div class="prod-detail-desc">'+desc+'</div>';}
+  else{h+='<div class="prod-detail-desc" style="color:var(--light)">상세 설명이 아직 등록되지 않았습니다.</div>';}
+  h+='</div>';
+  document.getElementById("prodDetailBody").innerHTML=h;
+  document.getElementById("prodDetailModal").classList.add("open");
+};
+window.closeProdDetail=function(){document.getElementById("prodDetailModal").classList.remove("open");};
+document.getElementById("prodDetailModal").addEventListener("click",function(e){if(e.target===this)closeProdDetail();});
 
 window.rmCart=function(i){cart.splice(i,1);renderP2();};
 

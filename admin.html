@@ -457,7 +457,8 @@ async function loadProducts(){
     var etaTxt=p.eta?' ('+p.eta+')':'';
     var statusHtml=isOn?'<span class="pill pill-on">판매 중</span>':'<span class="pill pill-off">준비 중'+etaTxt+'</span>';
     tbody+='<tr>';
-    tbody+='<td class="em-col">'+(p.emoji||'📦')+'</td>';
+    var imgCol=p.image_url?'<img src="'+p.image_url+'" style="width:36px;height:36px;border-radius:6px;object-fit:cover">':'<span style="font-size:18px">'+(p.emoji||'📦')+'</span>';
+    tbody+='<td style="width:44px;text-align:center">'+imgCol+'</td>';
     tbody+='<td><strong>'+p.name+'</strong></td>';
     tbody+='<td><span class="pill pill-cat">'+catName+'</span></td>';
     tbody+='<td><span class="pill pill-'+(p.tier||'basic')+'">'+tierName+'</span></td>';
